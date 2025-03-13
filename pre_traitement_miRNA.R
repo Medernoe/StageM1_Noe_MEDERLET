@@ -35,7 +35,7 @@ sum(rownames(miRNA) == "") # 0 lignes vides
 table(table(rownames(miRNA))) #aucune ligne avec le meme nom 
 
 
-all(rownames(miRNA) %in% Table(GPL6480)[,1])  # TRUE si tous sont présents, FALSE sinon
+all(rownames(miRNA) %in% Table(GPL8227)[,1])  # TRUE si tous sont présents, FALSE sinon
 #tout les noms de miRNA sont dans la table 
 
 

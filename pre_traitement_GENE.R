@@ -344,10 +344,10 @@ print(dim(data_combined))
 #-------------------------------------------------------------------------------------------------------------
 #export des matrices 
 
-write.csv(DATA1_PCC, file = "DATA1_PCC.csv", row.names = FALSE)
-write.csv(DATA1_PGL, file = "DATA1_PGL.csv", row.names = FALSE)
-write.csv(DATA1_CONTROL, file = "DATA1_CONTROL.csv", row.names = FALSE)
-write.csv(DATA2, file = "DATA2.csv", row.names = FALSE)
+write.csv(DATA1_PCC, file = "DATA19422_PCC.csv", row.names = T)
+write.csv(DATA1_PGL, file = "DATA19422_PGL.csv", row.names = T)
+write.csv(DATA1_CONTROL, file = "DATA19422_CONTROL.csv", row.names = T)
+write.csv(DATA2, file = "DATA51081.csv", row.names = T)
 
 
 
