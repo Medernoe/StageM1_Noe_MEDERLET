@@ -349,9 +349,13 @@ write.csv(DATA1_PGL, file = "DATA19422_PGL.csv", row.names = T)
 write.csv(DATA1_CONTROL, file = "DATA19422_CONTROL.csv", row.names = T)
 write.csv(DATA2, file = "DATA51081.csv", row.names = T)
 
+#-------------------------------------------------------------------------------------------------------------
+#export de merge_mapping 
 
+merged_mapping_export <- merged_mapping[!(is.na(merged_mapping$GENE_4133) & is.na(merged_mapping$GENE_6480)), ]
+sum(rowSums(is.na(merged_mapping_export)) > 0)
 
-
+write.csv(merged_mapping_export, file = "merged_mapping_export.csv", row.names = T)
 
 
 
