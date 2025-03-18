@@ -69,8 +69,6 @@ def update(gene_id, list_uptade):
 
 #%% Import de la table de jointure 
 
-
-# Vous pouvez aussi préciser le type dès la lecture du CSV pour certaines colonnes via le paramètre dtype
 df = pd.read_csv("C:/Users/noeme/OneDrive/Desktop/Stage_M1/Data/merged_mapping_export.csv", dtype=str, na_filter=False)
 
 
@@ -89,12 +87,14 @@ controle = { "arret" : 0  , #peut etre utilisé pour reprendre si le programme p
              "none" : 0
              }
 
-
+#list utiliser pour stocker les nouelles version de gene_id 
 id_updated = []  
+
 #-----------------------------------------------------------------------------------
 #boucle qui parcours lignes à lignes le dataframe 
 for i in range(0,total): 
     
+    print("-"*50)
     print(f"gene id numéro {i}/{total}")
     controle["arret"] = i
     
@@ -104,11 +104,12 @@ for i in range(0,total):
     if df["GENE_4133"].iloc[i] == df["GENE_6480"].iloc[i]: 
         
         controle["identique"] +=1 
+        print("Identiques")
         
         id = update(df["GENE_4133"].iloc[i],id_updated)
         
         if id != None : 
-            id_updated.append(df["GENE_4133"].iloc[i])
+            id_updated.append(id)
         
         else:
             id_updated.append(None)
@@ -120,19 +121,21 @@ for i in range(0,total):
     elif df["GENE_4133"].iloc[i] != df["GENE_6480"].iloc[i]:
         
         controle["different"] += 1  
-        
+        print("Différents")
+
         
         #-----------------------------------------------------------------------------------
         #GENE_4133 vaut NA et GENE_6480 à une valeur 
         
         if df["GENE_4133"].iloc[i] == "NA" and df["GENE_6480"].iloc[i] != "NA": 
             
-            
+            print("NA/ID")
+
             id = update(df["GENE_6480"].iloc[i],id_updated)
           
             if id != None : 
                 controle["old"] += 1
-                id_updated.append(df["GENE_6480"].iloc[i])
+                id_updated.append(id)
             
             else:
                 controle["none"] += 1
@@ -145,10 +148,12 @@ for i in range(0,total):
         elif df["GENE_4133"].iloc[i] != "NA" and df["GENE_6480"].iloc[i] == "NA":
             
             id = update(df["GENE_4133"].iloc[i],id_updated)
-          
+            
+            print("ID/NA")
+
             if id != None : 
                 controle["new"] += 1
-                id_updated.append(df["GENE_4133"].iloc[i])
+                id_updated.append(id)
             
             else:
                 controle["none"] += 1
@@ -162,6 +167,8 @@ for i in range(0,total):
             id_4133 = update(df["GENE_4133"].iloc[i],id_updated)
             id_6180 = update(df["GENE_6480"].iloc[i],id_updated) 
             
+            print("ID/ID")
+
             if id_4133 == id_6180:
                 id_updated.append(id_4133)
                 
@@ -183,6 +190,11 @@ for i in range(0,total):
 #ajouter la list dans une nouvelle colonne du tableau et exporter le nouveau dataframe  
 df["UPDATED_GENE_ID"] = id_updated 
        
-output_path = "C:/Users/noeme/OneDrive/Desktop/Stage_M1/Data/updated_merged_mapping_export.csv"
+output_path = "C:/Users/noeme/OneDrive/Desktop/Stage_M1/Data/update_gene_mapping.csv"
 df.to_csv(output_path, index=False)
     
+
+
+
+
+
