@@ -1,13 +1,18 @@
 from Bio import Entrez
-
+import json 
 import pandas as pd
+
+"""
+Ce programme est à usage unique, il sert à mettre à jour une list d'identifiant gene, et à récuperer les symboles associés 
+"""
+
 
 
 def update(gene_id, dico_uptade):
     """
     Réalise une requête API au NCBI pour vérifier la version du gene_id.
     Si l'ID est obsolète, il le met à jour et récupère les informations du gène,
-    y compris le symbole du gène sans refaire une nouvelle requête.
+    y compris le symbole en limitant les requêtes.
     """
     
     #-------------------------------------------------------------------------------------------------- 
@@ -20,7 +25,7 @@ def update(gene_id, dico_uptade):
     #-------------------------------------------------------------------------------------------------- 
     #variables
     Entrez.email = "noe.mederlet@univ-rouen.fr"
-    max_attempts = 3 # fixe le seuil après lequel les tentatives de requetes s'arretent 
+    max_attempts = 5 # fixe le seuil après lequel les tentatives de requetes s'arretent 
     attempts = 0
     records = None
       
@@ -33,6 +38,7 @@ def update(gene_id, dico_uptade):
             records = Entrez.read(handle)
             handle.close()
             break  
+        
         except Exception as e:
             attempts += 1
             print(f"Erreur lors de la récupération (tentative {attempts}/{max_attempts}) : {e}")
@@ -57,7 +63,7 @@ def update(gene_id, dico_uptade):
     # Extraction du status du gène
     status = gene_track.get("Gene-track_status", None)
     status_value = getattr(status, "attributes", {}).get("value", None) #attributes == la ou sont est stockée le status du gène valide/obsolète 
-
+    
     # Extraction du symbole 
     symbole = str(gene_data.get("Entrezgene_gene", {})
                   .get("Gene-ref", {})
@@ -84,6 +90,7 @@ def update(gene_id, dico_uptade):
             
             #--------------------------------------------------------------------------------------------------
             #refait une requete avec le gene_id à jour pour obtenir le symbole à jour 
+            
             attempts = 0 #mise à jour de la variable attempts 
             
             while attempts < max_attempts:
@@ -92,6 +99,7 @@ def update(gene_id, dico_uptade):
                     records = Entrez.read(handle)
                     handle.close()
                     break  
+                
                 except Exception as e:
                     attempts += 1
                     print(f"Erreur lors de la récupération (tentative {attempts}/{max_attempts}) : {e}")
@@ -102,8 +110,6 @@ def update(gene_id, dico_uptade):
                         records = None
             
             if records : 
-                gene_data = records[0]
-                
                 gene_data = records[0]
 
                 # Extraction du symbole 
@@ -131,9 +137,13 @@ def update(gene_id, dico_uptade):
 
     
 
-#%% Import de la table de jointure 
+#%% Import de la table de jointure et création des variables 
 
-df = pd.read_csv("C:/Users/noeme/OneDrive/Desktop/Stage_M1/Data/merged_mapping_export.csv", dtype=str, na_filter=False)
+folder = "C:/Users/noeme/OneDrive/Desktop/Stage_M1/Data/"
+file_data = "merged_mapping_export.csv"
+
+df = pd.read_csv(folder + file_data, dtype=str, na_filter=False)
+ 
 
 
 # Conversion des colonnes en string
@@ -156,10 +166,12 @@ id_updated = []
 
 #id et symbole sert à eviter de repeter des requetes API 
 dico_id_symbole = {}
-#-----------------------------------------------------------------------------------
-#boucle qui parcours lignes à lignes le dataframe 
+
+
+#%%boucle qui parcours lignes à lignes le dataframe 
+
 for i in range(0,total): 
-    
+
     print("-"*50)
     print(f"gene id numéro {i}/{total}")
     controle["arret"] = i
@@ -249,6 +261,7 @@ for i in range(0,total):
                 gene_id = id_4133 
                 symbole = symbole_4133
                 
+                
             elif id_4133 is None and id_6180:
                 controle["new_maj"] += 1
                 id_updated.append(id_6180)
@@ -256,21 +269,42 @@ for i in range(0,total):
                 gene_id = id_6180 
                 symbole = symbole_6180
                 
+                
             else:
                 controle["none"] += 1
                 id_updated.append(None)
-                
+                symbole = None
         
-     
     #ajoute les valeurs au dico 
     dico_id_symbole[gene_id] = symbole
+    
+    
+    #-----------------------------------------------------------------------------------
+    #Sauvegarde tout les 1000 gene_id 
+    
+    if i % 1000 == 0:
+        print(f"Sauvegarde de la liste id_updated après {i} gènes.")
         
+        # Sauvegarder des variables temporaires dans des fichiers afin de garder une trace en cas d'erreur 
+        with open(folder + f"id_updated_{i}.json", "w") as f:
+            json.dump(id_updated, f)
+            
+        with open(folder + f"dico_controle_{i}.json", "w") as f:
+            json.dump(controle, f)
+    
+        with open(folder + f"dico_id_symbole_{i}.json", "w") as f:
+            json.dump(dico_id_symbole, f)
+            
+   
+        
+#%%export des datas 
 
-#ajouter la list dans une nouvelle colonne du tableau et exporter le nouveau dataframe  
+#ajouter la list dans une nouvelle colonne du tableau  
 df["UPDATED_GENE_ID"] = id_updated 
-       
-output_path = "C:/Users/noeme/OneDrive/Desktop/Stage_M1/Data/update_gene_mapping.csv"
-df.to_csv(output_path, index=False)
+
+#Exporter le nouveau dataframe 
+output_path = "update_gene_mapping.csv"
+df.to_csv(folder + output_path, index=False)
     
 
 
