@@ -6,6 +6,45 @@ import pandas as pd
 Ce programme est à usage unique, il sert à mettre à jour une list d'identifiant gene, et à récuperer les symboles associés 
 """
 
+def extract_accessions(data):
+    """
+    Récupère les numéros d'accessions refseq (NM_, XM_, NR_, XR_).
+    """
+    accessions = []  # Liste pour stocker les accessions récupérées
+    
+    # Vérifier si l'argument 'data' est un dictionnaire
+    if isinstance(data, dict):
+        # Parcours de toutes les clés et valeurs dans le dictionnaire
+        for key, value in data.items():
+            # Si la clé est 'Gene-commentary_accession', cela indique un accession
+            if key == 'Gene-commentary_accession':  
+                
+                # Récupérer l'accession de la valeur associée à la clé
+                accession = value 
+                
+                # Vérifier si l'accession est une chaîne de caractères valide et commence par l'un des préfixes valides
+                if isinstance(accession, str) and (accession.startswith('NM_') 
+                                                   or accession.startswith('XM_') 
+                                                   or accession.startswith('NR_') 
+                                                   or accession.startswith('XR_')):
+                    
+                    # Vérifier si l'accession n'est pas déjà présente dans la liste
+                    if accession not in accessions: 
+                        print(accession)
+                        accessions.append(accession)  # Ajouter l'accession à la liste
+                
+            # Si la valeur est un dictionnaire ou une liste, on appelle la fonction récursivement pour chercher dans les sous-données
+            elif isinstance(value, (dict, list)):
+                accessions.extend(extract_accessions(value))  # Ajouter les résultats obtenus récursivement
+                
+    # Si la donnée 'data' est une liste
+    elif isinstance(data, list):
+        # Parcourir chaque élément de la liste et appeler la fonction récursivement
+        for item in data:
+            accessions.extend(extract_accessions(item))  # Ajouter les résultats obtenus de chaque élément
+
+    # Retourner la liste des accessions récupérées
+    return accessions
 
 
 def update(gene_id, dico_uptade):
@@ -306,6 +345,8 @@ df["UPDATED_GENE_ID"] = id_updated
 output_path = "update_gene_mapping.csv"
 df.to_csv(folder + output_path, index=False)
     
+
+
 
 
 
