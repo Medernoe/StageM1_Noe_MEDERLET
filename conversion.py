@@ -7,44 +7,47 @@ Ce programme est à usage unique, il sert à mettre à jour une list d'identifia
 """
 
 def extract_accessions(data):
-    """
-    Récupère les numéros d'accessions refseq (NM_, XM_, NR_, XR_).
-    """
-    accessions = []  # Liste pour stocker les accessions récupérées
-    
-    # Vérifier si l'argument 'data' est un dictionnaire
-    if isinstance(data, dict):
-        # Parcours de toutes les clés et valeurs dans le dictionnaire
-        for key, value in data.items():
-            # Si la clé est 'Gene-commentary_accession', cela indique un accession
-            if key == 'Gene-commentary_accession':  
-                
-                # Récupérer l'accession de la valeur associée à la clé
-                accession = value 
-                
-                # Vérifier si l'accession est une chaîne de caractères valide et commence par l'un des préfixes valides
-                if isinstance(accession, str) and (accession.startswith('NM_') 
-                                                   or accession.startswith('XM_') 
-                                                   or accession.startswith('NR_') 
-                                                   or accession.startswith('XR_')):
-                    
-                    # Vérifier si l'accession n'est pas déjà présente dans la liste
-                    if accession not in accessions: 
-                        print(accession)
-                        accessions.append(accession)  # Ajouter l'accession à la liste
-                
-            # Si la valeur est un dictionnaire ou une liste, on appelle la fonction récursivement pour chercher dans les sous-données
-            elif isinstance(value, (dict, list)):
-                accessions.extend(extract_accessions(value))  # Ajouter les résultats obtenus récursivement
-                
-    # Si la donnée 'data' est une liste
-    elif isinstance(data, list):
-        # Parcourir chaque élément de la liste et appeler la fonction récursivement
-        for item in data:
-            accessions.extend(extract_accessions(item))  # Ajouter les résultats obtenus de chaque élément
+     """
+     Récupère les numéros d'accessions refseq (NM_, XM_, NR_, XR_).
+     """
+     accessions = []  # Liste pour stocker les accessions récupérées
+     
+     # Vérifier si l'argument 'data' est un dictionnaire
+     if isinstance(data, dict):
+         # Parcours de toutes les clés et valeurs dans le dictionnaire
+         for key, value in data.items():
+             # Si la clé est 'Gene-commentary_accession', cela indique un accession
+             if key == 'Gene-commentary_accession':  
+                 
+                 # Récupérer l'accession de la valeur associée à la clé
+                 accession = value 
+                 
+                 # Vérifier si l'accession est une chaîne de caractères valide et commence par l'un des préfixes valides
+                 if isinstance(accession, str) and (accession.startswith('NM_') 
+                                                    or accession.startswith('XM_') 
+                                                    or accession.startswith('NR_') 
+                                                    or accession.startswith('XR_')):
+                     
+                     # Vérifier si l'accession n'est pas déjà présente dans la liste
+                     if accession not in accessions: 
+                         accessions.append(accession)  # Ajouter l'accession à la liste
+                 
+             # Si la valeur est un dictionnaire ou une liste, on appelle la fonction récursivement pour chercher dans les sous-données
+             elif isinstance(value, (dict, list)):
+                 accessions.extend(extract_accessions(value))  # Ajouter les résultats obtenus récursivement
+                 
+     # Si la donnée 'data' est une liste
+     elif isinstance(data, list):
+         # Parcourir chaque élément de la liste et appeler la fonction récursivement
+         for item in data:
+             accessions.extend(extract_accessions(item))  # Ajouter les résultats obtenus de chaque élément
+ 
+     # Retourner la liste des accessions récupérées
+     return accessions
 
-    # Retourner la liste des accessions récupérées
-    return accessions
+
+
+
 
 
 def update(gene_id, dico_uptade):
@@ -58,8 +61,10 @@ def update(gene_id, dico_uptade):
     #test qui évite de faire une requete inutile 
     if gene_id in dico_uptade: 
         print(f"Le GeneID {gene_id} et son symbole ont déjà été mis à jour.")
-        symbole = dico_uptade[gene_id]
-        return gene_id, symbole
+        symbole = dico_uptade[gene_id]["symbole"]
+        refseq = dico_uptade[gene_id]["refseq"]
+        
+        return gene_id, symbole, refseq
     
     #-------------------------------------------------------------------------------------------------- 
     #variables
@@ -89,7 +94,7 @@ def update(gene_id, dico_uptade):
 
     if not records:
         print(f"Aucune correspondance pour l'ID {gene_id}.")
-        return None
+        return gene_id, None, None 
 
 
     #-------------------------------------------------------------------------------------------------- 
@@ -102,14 +107,7 @@ def update(gene_id, dico_uptade):
     # Extraction du status du gène
     status = gene_track.get("Gene-track_status", None)
     status_value = getattr(status, "attributes", {}).get("value", None) #attributes == la ou sont est stockée le status du gène valide/obsolète 
-    
-    # Extraction du symbole 
-    symbole = str(gene_data.get("Entrezgene_gene", {})
-                  .get("Gene-ref", {})
-                  .get("Gene-ref_formal-name", {})
-                  .get("Gene-nomenclature", {})
-                  .get("Gene-nomenclature_symbol", "N/A"))
-    
+
     #-------------------------------------------------------------------------------------------------- 
     # Récupération des données du gène
     if status_value == "secondary":
@@ -148,7 +146,12 @@ def update(gene_id, dico_uptade):
                         print("Toutes les tentatives ont échoué.")
                         records = None
             
-            if records : 
+            
+            if not records:
+                return gene_id, None, None 
+            
+            
+            elif records : 
                 gene_data = records[0]
 
                 # Extraction du symbole 
@@ -158,9 +161,12 @@ def update(gene_id, dico_uptade):
                               .get("Gene-nomenclature", {})
                               .get("Gene-nomenclature_symbol", "N/A"))
                 
+                #extraction des refseq
+                refseq = extract_accessions(gene_data)
 
             else: 
                 symbole = None 
+                refseq = None 
           
                 
         else: 
@@ -168,18 +174,35 @@ def update(gene_id, dico_uptade):
             
             
     else:
-        print(f"Le GeneID {gene_id} est valide.")
-    
+        print(f"Le GeneID {gene_id} est probablement valide.")
+        
+        # Extraction du symbole 
+        symbole = str(gene_data.get("Entrezgene_gene", {})
+                      .get("Gene-ref", {})
+                      .get("Gene-ref_formal-name", {})
+                      .get("Gene-nomenclature", {})
+                      .get("Gene-nomenclature_symbol", "N/A"))
+
+        #extraction des refseq
+        refseq = extract_accessions(gene_data)
+       
     print(f"Symbole du gène : {symbole}")
     
-    return gene_id, symbole 
+    return gene_id, symbole, refseq
 
-    
+def scoring_values (x, y, z):
+    list_data = [x , y, z]
+    score = 0 
+    score += sum(1 for data in list_data if data is not None)
+    return score 
+
+
+
 
 #%% Import de la table de jointure et création des variables 
 
 folder = "C:/Users/noeme/OneDrive/Desktop/Stage_M1/Data/"
-file_data = "merged_mapping_export.csv"
+file_data = "merged_mapping_export_test.csv"
 
 df = pd.read_csv(folder + file_data, dtype=str, na_filter=False)
  
@@ -204,10 +227,10 @@ controle = { "arret" : 0  , #peut etre utilisé pour reprendre si le programme p
 id_updated = []  
 
 #id et symbole sert à eviter de repeter des requetes API 
-dico_id_symbole = {}
+dico_id = {}
 
 
-#%%boucle qui parcours lignes à lignes le dataframe 
+#%%boucle qui parcours lignes à lignes le dataframe et filtre les données 
 
 for i in range(0,total): 
 
@@ -223,7 +246,7 @@ for i in range(0,total):
         controle["identique"] +=1 
         print("Identiques")
         
-        gene_id, symbole = update(df["GENE_4133"].iloc[i],dico_id_symbole)
+        gene_id, symbole, refseq = update(df["GENE_4133"].iloc[i],dico_id) 
         
         if gene_id != None : 
             id_updated.append(gene_id)
@@ -248,7 +271,7 @@ for i in range(0,total):
             
             print("NA/ID")
 
-            gene_id, symbole = update(df["GENE_6480"].iloc[i],dico_id_symbole)
+            gene_id, symbole, refseq = update(df["GENE_6480"].iloc[i],dico_id)
           
             if gene_id != None : 
                 controle["old"] += 1
@@ -264,7 +287,7 @@ for i in range(0,total):
 
         elif df["GENE_4133"].iloc[i] != "NA" and df["GENE_6480"].iloc[i] == "NA":
             
-            gene_id, symbole = update(df["GENE_4133"].iloc[i],dico_id_symbole)
+            gene_id, symbole, refseq = update(df["GENE_4133"].iloc[i],dico_id)
             
             print("ID/NA")
 
@@ -281,8 +304,16 @@ for i in range(0,total):
         #cas ou les 2 gene_id ont une valeur, mais différente
         
         else: 
-            id_4133, symbole_4133 = update(df["GENE_4133"].iloc[i],dico_id_symbole)
-            id_6180, symbole_6180 = update(df["GENE_6480"].iloc[i],dico_id_symbole) 
+            id_4133, symbole_4133 ,refseq_4133 = update(df["GENE_4133"].iloc[i],dico_id)
+            id_6180, symbole_6180 ,refseq_6180 = update(df["GENE_6480"].iloc[i],dico_id) 
+            
+    
+            # Remplace rien par none pour le scoring 
+            refseq_4133 = refseq_4133 if refseq_4133 is not None and len(refseq_4133) > 0 else None
+            refseq_6180 = refseq_6180 if refseq_6180 is not None and len(refseq_6180) > 0 else None
+        
+            score_4133 = scoring_values(id_4133, symbole_4133 ,refseq_4133) 
+            score_6180 = scoring_values(id_6180, symbole_6180 ,refseq_6180)
             
             print("ID/ID")
 
@@ -291,18 +322,19 @@ for i in range(0,total):
                 
                 gene_id = id_4133 
                 symbole = symbole_4133
+                refseq = refseq_4133
                 
                 
-            elif id_4133 and id_6180 is None:
-                controle["old_maj"] += 1
+            elif score_4133 > score_6180 :
+                controle["new_maj"] += 1
                 id_updated.append(id_4133)
                 
                 gene_id = id_4133 
                 symbole = symbole_4133
                 
                 
-            elif id_4133 is None and id_6180:
-                controle["new_maj"] += 1
+            elif score_4133 < score_6180:
+                controle["old_maj"] += 1
                 id_updated.append(id_6180)
                 
                 gene_id = id_6180 
@@ -315,8 +347,11 @@ for i in range(0,total):
                 symbole = None
         
     #ajoute les valeurs au dico 
-    dico_id_symbole[gene_id] = symbole
-    
+    if gene_id not in dico_id:
+        dico_id[gene_id] = {}  
+        dico_id[gene_id]["symbole"] = symbole  
+        dico_id[gene_id]["refseq"] = refseq  
+
     
     #-----------------------------------------------------------------------------------
     #Sauvegarde tout les 1000 gene_id 
@@ -331,8 +366,8 @@ for i in range(0,total):
         with open(folder + f"dico_controle_{i}.json", "w") as f:
             json.dump(controle, f)
     
-        with open(folder + f"dico_id_symbole_{i}.json", "w") as f:
-            json.dump(dico_id_symbole, f)
+        with open(folder + f"dico_id_{i}.json", "w") as f:
+            json.dump(dico_id, f)
             
    
         
@@ -346,9 +381,7 @@ output_path = "update_gene_mapping.csv"
 df.to_csv(folder + output_path, index=False)
     
 
-
-
-
+print("fin du programme")
 
 
 
