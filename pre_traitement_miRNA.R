@@ -42,5 +42,36 @@ all(rownames(miRNA) %in% Table(GPL8227)[,1])  # TRUE si tous sont présents, FAL
 #aucune données ne doit etre filter, la matrice semble parfaite comme input 
 
 #========= export ======================================================
+#fusion des matrices 
+#==========================================================================================================================
+#suppresion des PGL du GSE19422 
 
-write.csv(miRNA, file = "DATA_miRNA.csv", row.names = TRUE)
+# Indices ajustés pour supprimer les PGL
+pgl_indices <- c(2:12)
+control_indices <- c(49:54)
+
+
+
+# Supprimer les lignes correspondantes
+miRNA_PCC <- miRNA[,-c(pgl_indices,control_indices)]
+
+miRNA_PGL <- miRNA[,pgl_indices]
+
+miRNA_CONTROL <- miRNA[,control_indices]
+
+
+# Vérifier le résultat
+dim(miRNA_PCC) #37
+dim(miRNA_PGL) #11
+dim(miRNA_CONTROL) #6
+
+
+
+#-------------------------------------------------------------------------------------------------------------
+#export des matrices 
+
+write.csv(miRNA_PCC, file = "miRNA_PCC.csv", row.names = T)
+write.csv(miRNA_PGL, file = "miRNA_PGL.csv", row.names = T)
+write.csv(miRNA_CONTROL, file = "miRNA_CONTROL.csv", row.names = T)
+write.csv(miRNA, file = "miRNA.csv", row.names = T)
+

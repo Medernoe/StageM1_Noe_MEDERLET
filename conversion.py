@@ -201,8 +201,8 @@ def scoring_values (x, y, z):
 
 #%% Import de la table de jointure et création des variables 
 
-folder = "C:/Users/noeme/OneDrive/Desktop/Stage_M1/Data/"
-file_data = "merged_mapping_export_test.csv"
+folder = "C:/Users/medernoe/Desktop/Stage_M1/Conversion_geneID/"
+file_data = "merged_mapping_export.csv"
 
 df = pd.read_csv(folder + file_data, dtype=str, na_filter=False)
  
@@ -220,7 +220,11 @@ controle = { "arret" : 0  , #peut etre utilisé pour reprendre si le programme p
              "new" : 0, 
              "old_maj" : 0, 
              "new_maj" : 0,
-             "none" : 0
+             "none" : 0 , 
+             "none_old" : 0, 
+             "none_new" : 0,
+             "ID/ID diff" : 0
+             
              }
 
 #list utiliser pour stocker les nouelles version de gene_id 
@@ -232,7 +236,7 @@ dico_id = {}
 
 #%%boucle qui parcours lignes à lignes le dataframe et filtre les données 
 
-for i in range(0,total): 
+for i in range(33001,total): 
 
     print("-"*50)
     print(f"gene id numéro {i}/{total}")
@@ -278,7 +282,7 @@ for i in range(0,total):
                 id_updated.append(gene_id)
             
             else:
-                controle["none"] += 1
+                controle["none_old"] += 1
                 id_updated.append(None)
                 
         
@@ -296,7 +300,7 @@ for i in range(0,total):
                 id_updated.append(gene_id)
             
             else:
-                controle["none"] += 1
+                controle["none_new"] += 1
                 id_updated.append(None)
                 
         
@@ -319,6 +323,8 @@ for i in range(0,total):
 
             if id_4133 == id_6180:
                 id_updated.append(id_4133)
+                
+                controle["ID/ID diff"] += 1
                 
                 gene_id = id_4133 
                 symbole = symbole_4133
@@ -368,20 +374,32 @@ for i in range(0,total):
     
         with open(folder + f"dico_id_{i}.json", "w") as f:
             json.dump(dico_id, f)
-            
+      
    
         
 #%%export des datas 
 
+    
+with open(folder + "dico_id.json", "w") as f:
+    json.dump(dico_id, f)
+
+with open(folder + "id_updated.json", "w") as f:
+    json.dump(id_updated, f)
+    
+with open(folder + "dico_controle.json", "w") as f:
+    json.dump(controle, f)
+
+#Exporter le nouveau dataframe 
+
 #ajouter la list dans une nouvelle colonne du tableau  
 df["UPDATED_GENE_ID"] = id_updated 
 
-#Exporter le nouveau dataframe 
 output_path = "update_gene_mapping.csv"
 df.to_csv(folder + output_path, index=False)
-    
 
-print("fin du programme")
+
+    
+print("fin du programme !!")
 
 
 
