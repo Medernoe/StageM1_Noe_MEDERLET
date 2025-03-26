@@ -1,10 +1,15 @@
-# Version info: R 4.2.2, Biobase 2.58.0, GEOquery 2.66.0, limma 3.54.0
-################################################################
+#!/usr/bin/env Rscript
+
+# Définir le répertoire de travail
+setwd("/home/medernoe/Ubuntu_user/Stage_M1_ubuntu/StageM1_git/Data")
+
+
+
+# Charger les packages
 library(GEOquery)
-library(limma)
-library(umap)
 library(Biobase)
-library(dplyr)
+
+
 
 
 # load series and platform data from GEO
@@ -344,20 +349,27 @@ print(dim(data_combined))
 #-------------------------------------------------------------------------------------------------------------
 #export des matrices 
 
-write.csv(DATA1_PCC, file = "DATA19422_PCC.csv", row.names = T)
-write.csv(DATA1_PGL, file = "DATA19422_PGL.csv", row.names = T)
-write.csv(DATA1_CONTROL, file = "DATA19422_CONTROL.csv", row.names = T)
-write.csv(DATA2, file = "DATA51081.csv", row.names = T)
+# Vérifier si le répertoire Output existe
+if (!dir.exists("Pre-traitement/Output")) {
+  # Créer le répertoire s'il n'existe pas
+  dir.create("Pre-traitement/Output", recursive = TRUE)
+}
+
+
+write.csv(DATA1_PCC, file = "Pre-traitement/Output/DATA19422_PCC.csv", row.names = T)
+write.csv(DATA1_PGL, file = "Pre-traitement/Output/DATA19422_PGL.csv", row.names = T)
+write.csv(DATA1_CONTROL, file = "Pre-traitement/Output/DATA19422_CONTROL.csv", row.names = T)
+write.csv(DATA2, file = "Pre-traitement/Output/DATA51081.csv", row.names = T)
 
 #-------------------------------------------------------------------------------------------------------------
 #export de merge_mapping 
 
 merged_mapping_export <- merged_mapping[!(is.na(merged_mapping$GENE_4133) & is.na(merged_mapping$GENE_6480)), ]
+
 sum(rowSums(is.na(merged_mapping_export)) > 0)
 
-write.csv(merged_mapping_export, file = "merged_mapping_export.csv", row.names = T)
+# Écrire le fichier CSV
+write.csv(merged_mapping_export, file = "Pre-traitement/Output/merged_mapping_export.csv", row.names = TRUE)
 
-
-
-
+print("fin du pre-traitement")
 

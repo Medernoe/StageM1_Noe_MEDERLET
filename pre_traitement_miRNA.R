@@ -1,9 +1,14 @@
-# Version info: R 4.2.2, Biobase 2.58.0, GEOquery 2.66.0, limma 3.54.0
-################################################################
-#   Differential expression analysis with limma
+#!/usr/bin/env Rscript
+
+# Définir le répertoire de travail
+setwd("/home/medernoe/Ubuntu_user/Stage_M1_ubuntu/StageM1_git/Data")
+
+
+
+# Charger les packages
 library(GEOquery)
-library(limma)
-library(umap)
+library(Biobase)
+
 
 #=========== load series and platform data from GEO ===============================
 
@@ -23,7 +28,7 @@ GPL8227 <- getGEO("GPL8227", destdir = ".")
 
 # Vérifier la structure de la table des formats de nom des lignes 
 colnames(Table(GPL8227))
-Table(GPL6480)[1:5, ]
+Table(GPL8227)[1:5, ]
 
 
 #========= étude des données ======================================================
@@ -70,8 +75,16 @@ dim(miRNA_CONTROL) #6
 #-------------------------------------------------------------------------------------------------------------
 #export des matrices 
 
-write.csv(miRNA_PCC, file = "miRNA_PCC.csv", row.names = T)
-write.csv(miRNA_PGL, file = "miRNA_PGL.csv", row.names = T)
-write.csv(miRNA_CONTROL, file = "miRNA_CONTROL.csv", row.names = T)
-write.csv(miRNA, file = "miRNA.csv", row.names = T)
+# Vérifier si le répertoire Output existe
+if (!dir.exists("Pre-traitement/Output")) {
+  # Créer le répertoire s'il n'existe pas
+  dir.create("Pre-traitement/Output", recursive = TRUE)
+}
 
+
+write.csv(miRNA_PCC, file = "Pre-traitement/Output/miRNA_PCC.csv", row.names = T)
+write.csv(miRNA_PGL, file = "Pre-traitement/Output/miRNA_PGL.csv", row.names = T)
+write.csv(miRNA_CONTROL, file = "Pre-traitement/Output/miRNA_CONTROL.csv", row.names = T)
+write.csv(miRNA, file = "Pre-traitement/Output/miRNA.csv", row.names = T)
+
+print("fin du pre-traitement")

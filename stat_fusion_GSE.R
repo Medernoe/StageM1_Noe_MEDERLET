@@ -1,3 +1,8 @@
+#!/usr/bin/env Rscript
+
+# Définir le répertoire de travail
+setwd("/home/medernoe/Ubuntu_user/Stage_M1_ubuntu/StageM1_git/Data/Pre-traitement/Output")
+
 library(car)
 library(nortest)
 
