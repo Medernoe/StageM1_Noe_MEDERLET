@@ -1,11 +1,23 @@
 #!/usr/bin/env Rscript
 
+install.packages("jsonlite")
+library(jsonlite)
+
 # Définir le répertoire de travail
 setwd("/home/medernoe/Ubuntu_user/Stage_M1_ubuntu/StageM1_git/Data")
 
+#ouvrir le json contenant les symbol-------------------------------------------------------------------------------------------
+# Lire le fichier JSON
+data_symbole <- fromJSON("Conversion/Output/dico_id.json")
+
+
+#ouvrir la table contenant les gene id pour les spot id -------------------------------------------------------------------------------------------
 updated_mapping <- read.csv("Conversion/Output/update_gene_mapping.csv")
+
+#ouvrir la DEG-------------------------------------------------------------------------------------------
 DEG_19422 <- read.csv("DEG/Output/DEG_results_19422.csv")
 
+#ajouter la colonne des gene_id----------------------------------------------------------------------------
 # Créer un vecteur contenant les nouveaux noms de ligne (SPOT_ID)
 ref_names <- updated_mapping[,c(2,11)]
 
@@ -26,7 +38,35 @@ sum(is.na(df_final$UPDATED_GENE_ID))#1211
 df_final_gene = df_final[!is.na(df_final$UPDATED_GENE_ID),]
 sum(is.na(df_final_gene$UPDATED_GENE_ID))#0 la suppresion des na c'est bien passé 
 
-# Écrire le fichier CSV
+#modification du nom de la colonne 
+colnames(df_final_gene)[colnames(df_final_gene) == "UPDATED_GENE_ID"] <- "Gene_id"
+colnames(df_final_gene)
+
+
+#ajout des gene_symbol-----------------------------------------------------------------------------------------------------
+# Ajouter une colonne "Symbol" remplie de NA
+df_final_gene$Symbol <- NA
+
+# Boucle sur chaque ligne du dataframe
+for (i in 1:nrow(df_final_gene)) {
+  gene_id <- as.character(df_final_gene$Gene_id[i])  # Récupérer le gene_id
+  
+  # Vérifier si gene_id existe dans le JSON
+  if (gene_id %in% names(data_symbole)) {
+    symbol_value <- data_symbole[[gene_id]]$symbole  # Extraire la valeur associée
+    
+    # Vérifier si la valeur est non vide
+    if (!is.null(symbol_value) && symbol_value != "") {
+      df_final_gene$Symbol[i] <- symbol_value  # Remplacer la valeur
+    }
+  } else {
+    print(paste("Erreur : aucune clé associée au gene_id", gene_id))
+  }
+}
+
+
+
+# Écrire le fichier CSV------------------------------------------------------------------------------------------
 write.csv(df_final_gene, file = "Interaction/Input/DEG_updated_gene.csv", row.names = TRUE)
 
 
