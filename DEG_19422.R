@@ -7,6 +7,7 @@ setwd("/home/medernoe/Ubuntu_user/Stage_M1_ubuntu/StageM1_git/Data")
 # Charger les bibliothèques nécessaires
 library(limma)
 library(ggplot2)
+library(pheatmap)
 
 # Importer les données de contrôle et de PCC
 control_data <- read.csv("Pre-traitement/Output/DATA19422_CONTROL.csv", row.names=1)
@@ -37,7 +38,6 @@ deg_results <- results[results$adj.P.Val < 0.05,]
 X11()
 #volcano plot 
 
-
 # Ajouter une colonne 'Significance' 
 results$Significance <- "Not significant"
 
@@ -61,6 +61,29 @@ plot <- ggplot(results, aes(x = logFC, y = -log10(P.Value), color = Significance
 
 print(plot)
 
+
+
+#heatmap - brouillon 
+dev.new()
+# Assurer que combined_data est bien une matrice numérique
+data_matrix <- as.matrix(combined_data)
+mode(data_matrix) <- "numeric"
+
+# Vérifier que les gènes DEG existent dans la matrice
+common_genes <- intersect(rownames(deg_results), rownames(data_matrix))
+
+# Extraire uniquement les gènes DEG pour la heatmap
+heatmap_data <- data_matrix[common_genes, ]
+
+# Vérifier que les données ne contiennent pas de valeurs NA
+heatmap_data <- na.omit(heatmap_data)
+
+# plot
+plot2 <- pheatmap(heatmap_data, scale="row", main="Heatmap des DEG", color=colorRampPalette(c("blue", "white", "red"))(50))
+
+print(plot2)
+
+
 #export ------------------------------------------------------------------------------------------
 # Trier les résultats par logFC
 deg_results_sorted <- deg_results[order(deg_results$logFC, decreasing=TRUE),]
@@ -76,9 +99,8 @@ if (!dir.exists("DEG/Output")) {
 write.csv(deg_results_sorted, "DEG/Output/DEG_results_19422.csv")
 
 
-# Enregistrer le graphique 
+# Enregistrer le vplot 
 ggsave("DEG/Output/volcano_plot_19422.png")
-
 
 
 

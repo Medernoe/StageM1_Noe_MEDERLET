@@ -65,9 +65,8 @@ for (i in 1:nrow(df_final_gene)) {
 }
 
 
-
 # Écrire le fichier CSV------------------------------------------------------------------------------------------
-write.csv(df_final_gene, file = "Interaction/Input/DEG_updated_gene.csv", row.names = TRUE)
+write.csv(df_final_gene, file = "Transcript/Input/DEG_updated_gene.csv", row.names = TRUE)
 
 
 #=============================================================================================================
