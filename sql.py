@@ -59,7 +59,7 @@ def gene_mirna_interaction(gene_id, miR_mimat):
 
 #%% ouverture des CSV 
 file_data_miRNA = "Data/DEG/Output/DEG_results_miRNA.csv"
-file_data_gene = "Data/Interaction/Input/DEG_updated_gene.csv"
+file_data_gene = "Data/Transcript/Output/DEG_complete.csv"
 
 miRNA = pd.read_csv(file_data_miRNA, dtype=str, na_filter=False)
 Gene = pd.read_csv(file_data_gene, dtype=str, na_filter=False)
@@ -105,3 +105,4 @@ folder = "Data/Interaction/Output/"
 with open(folder + "interaction_miRNA_gene.json", "w") as f:
     json.dump(dico_interaction, f)            
             
+

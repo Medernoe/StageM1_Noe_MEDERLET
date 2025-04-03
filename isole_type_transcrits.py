@@ -64,13 +64,13 @@ def isole_data(symbole):
     return biotype 
 
 
-
-#test à la main des fonctions 
 """
+#test à la main des fonctions 
+
 miRNA = "MIR21"
 lncRNA = "NEAT1"
 
-biotype = isole_data(lncRNA)
+biotype = isole_data("MIR21")
 """
 
 
@@ -115,8 +115,10 @@ for symbole in gene["Symbol"]:
     
     print("=>" + biotype[i])
     i += 1
-    
+
+
+
+#%%enregistre les données 
+
 gene["Type"] = biotype
-
-
 gene.to_csv(folder_output + "DEG_complete.csv", index=False)
