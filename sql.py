@@ -2,12 +2,13 @@ import mysql.connector
 import pandas as pd 
 import json 
 
+
 #%%log sql 
 
 mydb = mysql.connector.connect(
   host="localhost",
   user="medernoe",
-  password="1234"
+  password="1234", 
 )
 
 #%%fonction 
@@ -59,7 +60,7 @@ def gene_mirna_interaction(gene_id, miR_mimat):
 
 #%% ouverture des CSV 
 file_data_miRNA = "Data/DEG/Output/DEG_results_miRNA.csv"
-file_data_gene = "Data/Transcript/Output/DEG_complete.csv"
+file_data_gene = "Data/Transcript/Output/DEG_complete_old.csv"
 
 miRNA = pd.read_csv(file_data_miRNA, dtype=str, na_filter=False)
 Gene = pd.read_csv(file_data_gene, dtype=str, na_filter=False)

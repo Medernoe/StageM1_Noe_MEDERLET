@@ -1,6 +1,14 @@
 import requests
 import pandas as pd 
+import mysql.connector
 
+mydb = mysql.connector.connect(
+  host="localhost",
+  user="medernoe",
+  password="1234", #se connecter avec medernoe pour exécuter sur wsl 
+)
+
+#%% fonction de requete ensembl 
 def requete_data(symbole = ""):
     """
     Réalise une requete NCBI à partir d'un symbole et sort un dico 
@@ -41,8 +49,6 @@ def requete_data(symbole = ""):
 
 
 
-
-
 def isole_data(symbole):
     """
     Isole le biotype, possibilité de récupérer d'autre informations 
@@ -74,7 +80,27 @@ biotype = isole_data("MIR21")
 """
 
 
+#%%fonction de requete mysql 
 
+def TF(symbol):
+    """
+    Fais la requete pour avoir un mimat 
+    """
+    mycursor = mydb.cursor()
+    mycursor.execute("USE TF_database") 
+    
+    mycursor.execute(f"""SELECT Name_TF 
+                        FROM TFlink 
+                        WHERE Name_TF = "{symbol}"
+                        LIMIT 1; """)
+                    
+    myresult = mycursor.fetchall()
+    
+    mycursor.close()
+
+    return myresult
+
+#TF("NANOG")
 
 
 #%%
@@ -99,26 +125,27 @@ symbol_list = [line.split("\t")[1].strip() for line in lines[1:] if line.split("
 
 #%%creer la colonne de biotype 
 
+#%%%Détermine le biotype 
 #initialisation des variables 
-biotype = []
+biotypes = []
 i = 0
 total = len(gene["Symbol"])
 
 for symbole in gene["Symbol"]:  
     print(f"Symbole {i}/{total}")
+    biotype = isole_data(symbole)
     
-    if symbole in symbol_list : 
-        biotype.append("TF")
+    if biotype == "protein_coding" : 
+        temp_type = TF(symbole)
+        if len(temp_type) > 0: 
+            biotype = "TF"
         
-    else: 
-        biotype.append(isole_data(symbole)) 
+    biotypes.append(biotype) 
     
-    print("=>" + biotype[i])
+    print("=>" + biotypes[i])
     i += 1
-
-
 
 #%%enregistre les données 
 
-gene["Type"] = biotype
+gene["Type"] = biotypes
 gene.to_csv(folder_output + "DEG_complete.csv", index=False)
