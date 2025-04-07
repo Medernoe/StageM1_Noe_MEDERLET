@@ -7,15 +7,15 @@ import json
 
 mydb = mysql.connector.connect(
   host="localhost",
-  user="medernoe",
-  password="1234", 
+  user="root",
+  password="m23n25s22n24", 
 )
 
 #%%fonction 
 
 def miR_name_mimat(miR_name):
     """
-    Fais la requete pour avoir un mimat 
+    Fais la requete pour avoir un mimat à partir d'un mirNAME
     """
     mycursor = mydb.cursor()
     mycursor.execute("USE mirabel") 
@@ -39,7 +39,7 @@ def miR_name_mimat(miR_name):
 
 def gene_mirna_interaction(gene_id, miR_mimat):
     """
-    Fais la requete pour avoir les information d'interactoion entre les un gene_id et un mimat 
+    Fais la requete pour avoir les information d'interactoion entre un gene_id et un mimat 
     """
     mycursor = mydb.cursor()
     mycursor.execute("USE mirabel") 
@@ -58,9 +58,22 @@ def gene_mirna_interaction(gene_id, miR_mimat):
     return myresult
 
 
+def pourcent_trie(dico, pourcentage = 0.05): 
+    """
+    Retourne les 5% des meilleurs scrores du dico 
+    """
+    dico_trie = dict(sorted(dico.items(), key=lambda item: item[1]['score'], reverse=False)) 
+    
+    n = len(dico_trie)
+    top = int(n * pourcentage) or 1
+     
+    top_dico = dict(list(dico_trie.items())[:top])  
+    
+    return top_dico
+
 #%% ouverture des CSV 
 file_data_miRNA = "Data/DEG/Output/DEG_results_miRNA.csv"
-file_data_gene = "Data/Transcript/Output/DEG_complete_old.csv"
+file_data_gene = "Data/Transcript/Output/DEG_complete_TFlink.csv"
 
 miRNA = pd.read_csv(file_data_miRNA, dtype=str, na_filter=False)
 Gene = pd.read_csv(file_data_gene, dtype=str, na_filter=False)
@@ -98,9 +111,10 @@ for mirname in miRNA.iloc[:,0]:
             prediction = gene_mirna_interaction(gene, mimat)
             
             if prediction : 
-                dico_interaction[mimat][gene] = {"score ": prediction[0][0] , 
+                dico_interaction[mimat][gene] = {"score": prediction[0][0] , 
                                              "val" : str(prediction[0][1]) } 
-    
+                
+    dico_interaction[mimat] = pourcent_trie(dico_interaction[mimat])
   
 folder = "Data/Interaction/Output/"        
 with open(folder + "interaction_miRNA_gene.json", "w") as f:
