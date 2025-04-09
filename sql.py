@@ -1,14 +1,15 @@
 import mysql.connector
 import pandas as pd 
 import json 
+import sys 
 
 
 #%%log sql 
 
 mydb = mysql.connector.connect(
   host="localhost",
-  user="root",
-  password="m23n25s22n24", 
+  user="medernoe",
+  password="1234", 
 )
 
 #%%fonction 
@@ -58,6 +59,7 @@ def gene_mirna_interaction(gene_id, miR_mimat):
     return myresult
 
 
+
 def pourcent_trie(dico, pourcentage = 0.05): 
     """
     Retourne les 5% des meilleurs scrores du dico 
@@ -73,17 +75,21 @@ def pourcent_trie(dico, pourcentage = 0.05):
 
 #%% ouverture des CSV 
 file_data_miRNA = "Data/DEG/Output/DEG_results_miRNA.csv"
-file_data_gene = "Data/Transcript/Output/DEG_complete_TFlink.csv"
-
+file_data = sys.argv[1]
+ 
+    
 miRNA = pd.read_csv(file_data_miRNA, dtype=str, na_filter=False)
-Gene = pd.read_csv(file_data_gene, dtype=str, na_filter=False)
+miRNA.to_csv("Data/Interaction/Input/DEG_miRNA.csv", index=1)
+
+
+data = pd.read_csv(file_data, dtype=str, na_filter=False)
 
 
 #%% Convertir les mirnames en mimat 
 
 list_mimat = []
 total_miR = len(miRNA.iloc[:,0])
-total_gene = len(Gene["Gene_id"]) 
+total = len(data["Gene_id"]) 
 i = 0
 ii = 0
 dico_interaction = {}
@@ -97,27 +103,29 @@ for mirname in miRNA.iloc[:,0]:
     
     list_mimat.append(mimat)
     
-    dico_interaction[mimat] = {}
+    dico_interaction[mirname] = {}
     
     ii = 0
     
-    for gene in Gene["Gene_id"] : 
+    for gene in data["Gene_id"] : 
         
         ii += 1 
-        print(f"miRNA : {mirname}  -{i}/{total_miR} => gene {ii}/{total_gene}") 
+        print(f"miRNA : {mirname}  -{i}/{total_miR} => gene {ii}/{total}") 
         
-        if gene not in dico_interaction[mimat] : 
+        if gene not in dico_interaction[mirname] : 
 
             prediction = gene_mirna_interaction(gene, mimat)
             
             if prediction : 
-                dico_interaction[mimat][gene] = {"score": prediction[0][0] , 
+                dico_interaction[mirname][gene] = {"score": prediction[0][0] , 
                                              "val" : str(prediction[0][1]) } 
                 
-    dico_interaction[mimat] = pourcent_trie(dico_interaction[mimat])
-  
-folder = "Data/Interaction/Output/"        
-with open(folder + "interaction_miRNA_gene.json", "w") as f:
-    json.dump(dico_interaction, f)            
-            
+    dico_interaction[mirname] = pourcent_trie(dico_interaction[mirname])
 
+name = sys.argv[2]
+full_name = f"interaction_miRNA_{name}.json"
+folder = "Data/Interaction/Output/"        
+with open(folder + full_name, "w") as f:
+    json.dump(dico_interaction, f)            
+                     
+            
