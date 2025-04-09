@@ -107,6 +107,19 @@ df_interaction_miR['Source'] = df_interaction_miR['Source'].str.replace("hsa-miR
 # Affichage du DataFrame final
 print(df_interaction_miR)
 
+#%%%%conversion des gene_id en symbol 
+with open("Data/Conversion/Output/dico_id.json", "r") as f:
+    dico_id = json.load(f)
+
+# Fonction de conversion avec le dictionnaire dico_id
+def convert_id_to_symbol(gene_id):
+    # On s'assure que gene_id est une chaîne
+    gene_id_str = str(gene_id)
+    return dico_id.get(gene_id_str, {}).get("symbole", "NA")
+
+# Application de la conversion sur chaque ligne de la colonne 'Target'
+df_interaction_miR["Target"] = df_interaction_miR["Target"].apply(convert_id_to_symbol)
+
     
 #%%%création d'un tableau pour TF 
 TF_gene   = "interaction_TF_gene.json"
