@@ -1,5 +1,13 @@
 #!/usr/bin/env Rscript
 
+
+#Ce programme réalise la DEG des miRNA (GSE29742), et exporte uniquement les données significatif (pvalue.adj < 0.05)
+
+#Input : Pre-traitement/Output/    miRNA_CONTROL.csv miRNA_PCC.csv
+#Output : DEG/Output/     DEG_results_miRNA.csv volcano_plot_miRNA.png
+
+
+
 # Définir le répertoire d'input
 setwd("/home/medernoe/Ubuntu_user/Stage_M1_ubuntu/StageM1_git/Data")
 
@@ -16,7 +24,7 @@ pcc_data <- read.csv("Pre-traitement/Output/miRNA_PCC.csv", row.names=1)
 # Combiner les données de contrôle et de PCC
 combined_data <- cbind(control_data, pcc_data)
 
-# Créer un vecteur de groupes (contrôle vs PCC)
+# Créer un vecteur de groupes (contrôle vs PCC) avec control comme reference 
 group_labels <- factor(c(rep("Control", ncol(control_data)), rep("PCC", ncol(pcc_data))))
 
 # Créer une matrice de design

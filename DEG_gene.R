@@ -1,5 +1,11 @@
 #!/usr/bin/env Rscript
 
+#Ce programme réalise la DEG des genes (GSE19422), et exporte uniquement les données significatif (pvalue.adj < 0.05)
+
+#Input : Pre-traitement/Output/    DATA19422_PCC.csv DATA19422_CONTROL.csv
+#Output : DEG/Output/     DEG_results_gene.csv volcano_plot_19422.png
+
+
 # Définir le répertoire d'input
 setwd("/home/medernoe/Ubuntu_user/Stage_M1_ubuntu/StageM1_git/Data")
 
@@ -16,7 +22,7 @@ pcc_data <- read.csv("Pre-traitement/Output/DATA19422_PCC.csv", row.names=1)
 # Combiner les données de contrôle et de PCC
 combined_data <- cbind(control_data, pcc_data)
 
-# Créer un vecteur de groupes (contrôle vs PCC)
+# Créer un vecteur de groupes (contrôle vs PCC) avec control comme reference 
 group_labels <- factor(c(rep("Control", ncol(control_data)), rep("PCC", ncol(pcc_data))))
 
 # Créer une matrice de design
@@ -96,11 +102,11 @@ if (!dir.exists("DEG/Output")) {
 }
 
 # Enregistrer les résultats
-write.csv(deg_results_sorted, "DEG/Output/DEG_results_19422.csv")
+write.csv(deg_results_sorted, "DEG/Output/DEG_results_gene.csv")
 
 
 # Enregistrer le vplot 
-ggsave("DEG/Output/volcano_plot_19422.png")
+ggsave("DEG/Output/volcano_plot_gene.png")
 
 
 

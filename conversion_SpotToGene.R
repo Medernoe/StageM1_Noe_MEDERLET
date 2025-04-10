@@ -1,5 +1,14 @@
 #!/usr/bin/env Rscript
 
+#Ce programme remplace les spot_id par les gene_id en usant des gene_id mis à jour à partir de conversion_oldID_to_newID
+
+#Input : Conversion/Output/   update_gene_mapping.csv
+#        DEG/Output/          DEG_results_gene.csv
+#        Conversion/Output/   dico_id.json
+#Output : Transcript/Input/   DEG_updated_gene.csv
+
+
+
 install.packages("jsonlite")
 library(jsonlite)
 

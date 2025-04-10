@@ -1,5 +1,11 @@
 #!/usr/bin/env Rscript
 
+#Ce programme test à savoir si une fusion des GSE19422 et 51081 est possible ou pas en faisant des test statistique 
+
+#Input : Pre-traitement/Output DATA19422_PCC.csv DATA19422_PGL.csv DATA19422_CONTROL.csv DATA51081.csv
+#Conclusion : La fusion semble difficile, réalisation d'une ACP supplémentaire 
+
+
 # Définir le répertoire de travail
 setwd("/home/medernoe/Ubuntu_user/Stage_M1_ubuntu/StageM1_git/Data/Pre-traitement/Output")
 
@@ -9,10 +15,10 @@ library(nortest)
 
 #test stat
 #==========================================================================================================================
-DATA1_PCC <- read.csv("DATA1_PCC.csv")
-DATA1_PGL <- read.csv("DATA1_PGL.csv")
-DATA1_CONTROL <- read.csv("DATA1_CONTROL.csv")
-DATA2 <- read.csv("DATA2.csv")
+DATA1_PCC <- read.csv("DATA19422_PCC.csv")
+DATA1_PGL <- read.csv("DATA19422_PGL.csv")
+DATA1_CONTROL <- read.csv("DATA19422_CONTROL.csv")
+DATA2 <- read.csv("DATA51081.csv")
 
 
 # --- ÉTAPE 1 : Préparer les données ---

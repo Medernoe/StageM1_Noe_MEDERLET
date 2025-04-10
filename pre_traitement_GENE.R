@@ -1,15 +1,19 @@
 #!/usr/bin/env Rscript
 
+#Ce programme vérifie la qualité des GSE utilisés (Répetition, NA, ...) exporte les données pour la DEG et la table de mapping pour la conversion_spotID_geneID
+
+#Input : GEOquery GSE19422/51081 et GPL6480
+#Output : Pre-traitement/Output/    DATA19422_PCC.csv DATA19422_PGL.csv DATA19422_CONTROL.csv DATA51081.csv
+#         Conversion/Input/         merged_mapping_export.csv
+
+
+
 # Définir le répertoire de travail
 setwd("/home/medernoe/Ubuntu_user/Stage_M1_ubuntu/StageM1_git/Data")
-
-
 
 # Charger les packages
 library(GEOquery)
 library(Biobase)
-
-
 
 
 # load series and platform data from GEO
@@ -86,7 +90,7 @@ colnames(exprs(gset51081))
 # Vérifier les noms des gènes
 rownames(featureData(gset19422)) #Probe name version (= "Spot_ID" )
 rownames(featureData(gset51081)) #Feature name version (="ID")
-#attention "Id" n'est pas la meme chose dans les 2 PGL CF: structuration des données sur le liens du GSE 
+#attention "Id" n'est pas la meme chose dans les 2 PGL CF: structure des données sur le liens du GSE 
 
 #vérification de NA dans les data 
 sum(is.na(DATA1))
@@ -369,7 +373,7 @@ merged_mapping_export <- merged_mapping[!(is.na(merged_mapping$GENE_4133) & is.n
 sum(rowSums(is.na(merged_mapping_export)) > 0)
 
 # Écrire le fichier CSV
-write.csv(merged_mapping_export, file = "Pre-traitement/Output/merged_mapping_export.csv", row.names = TRUE)
+write.csv(merged_mapping_export, file = "Conversion/Input/merged_mapping_export.csv", row.names = TRUE)
 
 print("fin du pre-traitement")
 

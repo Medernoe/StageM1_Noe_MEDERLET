@@ -1,14 +1,18 @@
 #!/usr/bin/env Rscript
 
+#Ce programme vérifie la qualité dU GSE utilisé (Répetition, NA, ...) exporte les données pour la DEG 
+
+#Input : GEOquery GSE29742 et GPL8227
+#Output : Pre-traitement/Output/    miRNA_PCC.csv miRNA_PGL.csv miRNA_CONTROL.csv miRNA.csv
+
+
 # Définir le répertoire de travail
 setwd("/home/medernoe/Ubuntu_user/Stage_M1_ubuntu/StageM1_git/Data")
-
 
 
 # Charger les packages
 library(GEOquery)
 library(Biobase)
-
 
 #=========== load series and platform data from GEO ===============================
 
@@ -57,7 +61,7 @@ control_indices <- c(49:54)
 
 
 
-# Supprimer les lignes correspondantes
+# Supprimer les lignes correspondantes au indices 
 miRNA_PCC <- miRNA[,-c(pgl_indices,control_indices)]
 
 miRNA_PGL <- miRNA[,pgl_indices]

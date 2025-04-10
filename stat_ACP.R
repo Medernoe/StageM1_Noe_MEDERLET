@@ -1,5 +1,13 @@
 #!/usr/bin/env Rscript
 
+#Ce programme test à savoir si une fusion des GSE19422 et 51081 est possible en utilisant l'ACP
+
+#Input : Pre-traitement/Output DATA19422_PCC.csv  DATA19422_CONTROL.csv DATA51081.csv
+#Output : Data/Stats/ACP plot1:10
+
+#Conclusion : La fusion n'est pas réalisable directement 
+
+
 # Définir le répertoire d'input
 setwd("/home/medernoe/Ubuntu_user/Stage_M1_ubuntu/StageM1_git/Data/Pre-traitement/Output")
 
