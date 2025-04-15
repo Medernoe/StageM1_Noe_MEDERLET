@@ -9,10 +9,10 @@ les gènes codants en "TF" si applicable.
 
 Input :
 - Data/Transcript/Input/  DEG_updated_gene.csv : fichier contenant une colonne "Symbol" avec les noms des gènes
-- Data/Transcript/Output/ requete decoupler collecTRI
+- requete decoupler collecTRI
 
 Output :
-- DEG_complete.csv : même tableau que l'entrée, avec une colonne ajoutée "Type" indiquant :
+- Data/Transcript/Output/ DEG_complete.csv : même tableau que l'entrée, avec une colonne ajoutée "Type" indiquant :
     • "TF" pour les facteurs de transcription
     • "protein_coding" pour les gènes codants
     • "miRNA", "lncRNA", etc., selon la classification Ensembl

@@ -30,6 +30,7 @@ import mysql.connector
 import pandas as pd 
 import json 
 import sys 
+import os 
 
 #%% Connexion à la base de données MySQL locale
 mydb = mysql.connector.connect(
@@ -99,7 +100,7 @@ for mirname in miRNA.iloc[:,0]:
     mimat = miR_name_mimat(mirname)
     
     if not mimat:
-        print(f"⚠️ Aucun mimat trouvé pour {mirname}")
+        print(f"Aucun mimat trouvé pour {mirname}")
         continue
 
     mimat = str(mimat[0][0])  # on extrait juste l'identifiant
@@ -126,9 +127,13 @@ for mirname in miRNA.iloc[:,0]:
 #%% Sauvegarde du dictionnaire d'interactions dans un fichier JSON
 name = sys.argv[2]
 full_name = f"interaction_miRNA_{name}.json"
-folder = "Data/Interaction/Output/"
+folder_output = "Data/Interaction/Output/"
+# Vérifier si le répertoire output existe
+if not os.path.exists(folder_output):
+    os.makedirs(folder_output)
 
-with open(folder + full_name, "w") as f:
+
+with open(folder_output + full_name, "w") as f:
     json.dump(dico_interaction, f)
   
                      

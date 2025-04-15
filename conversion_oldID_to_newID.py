@@ -1,13 +1,15 @@
 from Bio import Entrez
 import json 
 import pandas as pd
+import os
+
 
 """
 Ce programme met à jour une liste d'identifiants de gènes (GeneID) en interrogeant la base NCBI.
 Il vérifie si les identifiants sont encore valides, les met à jour si nécessaire, et récupère les symboles génétiques associés.
 
-Input : merged_mapping_export.csv
-Output : update_gene_mapping.csv
+Input : Data/Conversion/Input/ merged_mapping_export.csv
+Output : Data/Conversion/Output/ update_gene_mapping.csv dico_id.json id_updated.json dico_controle.json
 """
 
 # Fonction récursive pour extraire les accession RefSeq d'une structure JSON
@@ -112,10 +114,18 @@ def scoring_values(x, y, z):
     return sum(1 for data in list_data if data is not None)
 
 #%% Chargement des données initiales
-folder = "C:/Users/medernoe/Desktop/Stage_M1/Conversion_geneID/"
+
+#input
+folder_intput = "Data/Conversion/Input/"
 file_data = "merged_mapping_export.csv"
 
-df = pd.read_csv(folder + file_data, dtype=str, na_filter=False)
+#output
+folder_output = "Data/Conversion/Output/"
+# Vérifier si le répertoire output existe
+if not os.path.exists(folder_output):
+    os.makedirs(folder_output)
+
+df = pd.read_csv(folder_intput + file_data, dtype=str, na_filter=False)
 total = len(df["GENE_4133"])
 
 # Dictionnaires de contrôle/statistiques
@@ -194,24 +204,25 @@ for i in range(0, total):
     # Sauvegarde temporaire tous les 1000 gènes
     if i % 1000 == 0:
         print(f"Sauvegarde de la liste id_updated après {i} gènes.")
-        with open(folder + f"id_updated_{i}.json", "w") as f:
+        with open(folder_output + f"id_updated_{i}.json", "w") as f:
             json.dump(id_updated, f)
-        with open(folder + f"dico_controle_{i}.json", "w") as f:
+        with open(folder_output + f"dico_controle_{i}.json", "w") as f:
             json.dump(controle, f)
-        with open(folder + f"dico_id_{i}.json", "w") as f:
+        with open(folder_output + f"dico_id_{i}.json", "w") as f:
             json.dump(dico_id, f)
 
 #%% Export final
-with open(folder + "dico_id.json", "w") as f:
+
+with open(folder_output + "dico_id.json", "w") as f:
     json.dump(dico_id, f)
 
-with open(folder + "id_updated.json", "w") as f:
+with open(folder_output + "id_updated.json", "w") as f:
     json.dump(id_updated, f)
 
-with open(folder + "dico_controle.json", "w") as f:
+with open(folder_output + "dico_controle.json", "w") as f:
     json.dump(controle, f)
 
 df["UPDATED_GENE_ID"] = id_updated
-df.to_csv(folder + "update_gene_mapping.csv", index=False)
+df.to_csv(folder_output + "update_gene_mapping.csv", index=False)
 
 print("fin du programme !!")

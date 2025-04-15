@@ -12,11 +12,11 @@ Les informations sont issues de fichiers CSV (DEG classés par type) et de fichi
 contenant les interactions miRNA/TF générées en amont du pipeline.
 
 Entrées :
-- Data/Interaction/Input/DEG_TF.csv       ← TF exprimés
-- Data/Interaction/Input/DEG_GENE.csv     ← gènes codants exprimés
-- Data/Interaction/Input/DEG_lncRNA.csv   ← lncRNA exprimés
-- Data/Interaction/Input/DEG_miRNA.csv    ← miRNA exprimés
-- Data/Conversion/Output/dico_id.json     ← dictionnaire GeneID → Symbol
+- Data/Interaction/Input/DEG_TF.csv        TF exprimés
+- Data/Interaction/Input/DEG_GENE.csv      gènes codants exprimés
+- Data/Interaction/Input/DEG_lncRNA.csv    lncRNA exprimés
+- Data/Interaction/Input/DEG_miRNA.csv     miRNA exprimés
+- Data/Conversion/Output/dico_id.json      dictionnaire GeneID => Symbol
 - Tous les fichiers JSON présents dans : Data/Interaction/Output/
 
 Sorties :
@@ -146,4 +146,4 @@ df_concat = pd.concat([df_interaction_miR, df_interaction_TF], ignore_index=True
 # Export du fichier final d’arêtes
 df_concat.to_csv(folder_out + "edge.csv", index=False)
 
-print("✅ Fichiers nodes.csv et edge.csv générés avec succès dans :", folder_out)
+print("Fichiers nodes.csv et edge.csv générés avec succès dans :", folder_out)

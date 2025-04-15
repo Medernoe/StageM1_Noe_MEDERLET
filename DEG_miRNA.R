@@ -102,7 +102,6 @@ if (!dir.exists("DEG/Output")) {
 }
 
 
-
 # Enregistrer les résultats
 write.csv(deg_results_sorted, "DEG/Output/DEG_results_miRNA.csv")
 
@@ -110,5 +109,14 @@ write.csv(deg_results_sorted, "DEG/Output/DEG_results_miRNA.csv")
 ggsave("DEG/Output/volcano_plot_miRNA.png")
 
 
+#export dans l'input d'interaction 
+# Vérifier si le répertoire Output existe
+if (!dir.exists("Data/Interaction/Input")) {
+  # Créer le répertoire s'il n'existe pas
+  dir.create("Data/Interaction/Input", recursive = TRUE)
+}
+
+# Enregistrer les résultats
+write.csv(deg_results_sorted, "Data/Interaction/Input/DEG_results_miRNA.csv")
 
 

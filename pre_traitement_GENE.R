@@ -3,7 +3,7 @@
 #Ce programme vérifie la qualité des GSE utilisés (Répetition, NA, ...) exporte les données pour la DEG et la table de mapping pour la conversion_spotID_geneID
 
 #Input : GEOquery GSE19422/51081 et GPL6480
-#Output : Pre-traitement/Output/    DATA19422_PCC.csv DATA19422_PGL.csv DATA19422_CONTROL.csv DATA51081.csv
+#Output : Pre-traitement/Output/    gene_PCC.csv gene_PGL.csv gene_CONTROL.csv      #DATA51081.csv
 #         Conversion/Input/         merged_mapping_export.csv
 
 
@@ -360,13 +360,20 @@ if (!dir.exists("Pre-traitement/Output")) {
 }
 
 
-write.csv(DATA1_PCC, file = "Pre-traitement/Output/DATA19422_PCC.csv", row.names = T)
-write.csv(DATA1_PGL, file = "Pre-traitement/Output/DATA19422_PGL.csv", row.names = T)
-write.csv(DATA1_CONTROL, file = "Pre-traitement/Output/DATA19422_CONTROL.csv", row.names = T)
-write.csv(DATA2, file = "Pre-traitement/Output/DATA51081.csv", row.names = T)
+write.csv(DATA1_PCC, file = "Pre-traitement/Output/gene_PCC.csv", row.names = T)
+write.csv(DATA1_PGL, file = "Pre-traitement/Output/gene_PGL.csv", row.names = T)
+write.csv(DATA1_CONTROL, file = "Pre-traitement/Output/gene_CONTROL.csv", row.names = T)
+#write.csv(DATA2, file = "Pre-traitement/Output/DATA51081.csv", row.names = T)
 
 #-------------------------------------------------------------------------------------------------------------
 #export de merge_mapping 
+
+
+if (!dir.exists("Conversion/Input")) {
+  # Créer le répertoire s'il n'existe pas
+  dir.create("Conversion/Input", recursive = TRUE)
+}
+
 
 merged_mapping_export <- merged_mapping[!(is.na(merged_mapping$GENE_4133) & is.na(merged_mapping$GENE_6480)), ]
 

@@ -28,6 +28,7 @@ import decoupler as dc
 import pandas as pd
 import sys
 import json
+import os 
 
 #=========================== 1. Chargement du dataset CollecTRI ===========================
 df = dc.get_collectri(organism='human', split_complexes=False)
@@ -73,9 +74,13 @@ for i, tf in enumerate(list_TF, start=1):
 #=========================== 4. Sauvegarde en JSON ========================================
 name = sys.argv[2]
 full_name = f"interaction_TF_{name}.json"
-folder = "Data/Interaction/Output/"
+folder_output = "Data/Interaction/Output/"
 
-with open(folder + full_name, "w") as f:
+# Vérifier si le répertoire output existe
+if not os.path.exists(folder_output):
+    os.makedirs(folder_output)
+
+with open(folder_output + full_name, "w") as f:
     json.dump(dico_interaction, f)
 
-print(f"✅ Prédiction terminée ! Fichier enregistré ici : {folder + full_name}")
+print(f"Prédiction terminée ! Fichier enregistré ici : {folder_output + full_name}")

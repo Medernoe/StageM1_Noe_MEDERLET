@@ -2,7 +2,7 @@
 
 #Ce programme réalise la DEG des genes (GSE19422), et exporte uniquement les données significatif (pvalue.adj < 0.05)
 
-#Input : Pre-traitement/Output/    DATA19422_PCC.csv DATA19422_CONTROL.csv
+#Input : Pre-traitement/Output/    gene_PCC.csv gene_CONTROL.csv
 #Output : DEG/Output/     DEG_results_gene.csv volcano_plot_19422.png
 
 
@@ -16,8 +16,8 @@ library(ggplot2)
 library(pheatmap)
 
 # Importer les données de contrôle et de PCC
-control_data <- read.csv("Pre-traitement/Output/DATA19422_CONTROL.csv", row.names=1)
-pcc_data <- read.csv("Pre-traitement/Output/DATA19422_PCC.csv", row.names=1)
+control_data <- read.csv("Pre-traitement/Output/gene_CONTROL.csv", row.names=1)
+pcc_data <- read.csv("Pre-traitement/Output/gene_PCC.csv", row.names=1)
 
 # Combiner les données de contrôle et de PCC
 combined_data <- cbind(control_data, pcc_data)

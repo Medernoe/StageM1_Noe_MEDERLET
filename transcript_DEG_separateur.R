@@ -1,29 +1,26 @@
 #!/usr/bin/env Rscript
 
-# =============================================================================
-"""Script : split_DEG_by_biotype.R
 
-Description :
-Ce script lit un fichier contenant des gènes différentiellement exprimés (DEG),
-classés par type (TF, protein_coding, lncRNA, etc.), puis sépare ces gènes
-selon leur biotype pour créer des fichiers dédiés à chaque catégorie.
+#Description :
+#Ce script lit un fichier contenant des gènes différentiellement exprimés (DEG),
+#classés par type (TF, protein_coding, lncRNA, etc.), puis sépare ces gènes
+#selon leur biotype pour créer des fichiers dédiés à chaque catégorie.
 
-Input :
-- Transcript/Output/DEG_complete_collecTRI.csv : contient les colonnes 'Symbol' et 'Type'
+#Input :
+#- Data/Transcript/Output/DEG_complete_collecTRI.csv : contient les colonnes 'Symbol' et 'Type'
 
-Output :
-- Interaction/Input/DEG_TF.csv        : facteurs de transcription (Type == 'TF')
-- Interaction/Input/DEG_GENE.csv      : gènes codants classiques (Type == 'protein_coding')
-- Interaction/Input/DEG_lncRNA.csv    : ARN longs non codants (Type == 'lncRNA')
+#Output :
+#- Data/Interaction/Input/DEG_TF.csv        : facteurs de transcription (Type == 'TF')
+#- Data/Interaction/Input/DEG_GENE.csv      : gènes codants classiques (Type == 'protein_coding')
+#- Data/Interaction/Input/DEG_lncRNA.csv    : ARN longs non codants (Type == 'lncRNA')
 
-Remarque :
-Les entrées où le champ 'Symbol' est vide sont retirées (n = 146 ici).
+#Remarque :
+#Les entrées où le champ 'Symbol' est vide sont retirées (n = 146 ici).
 
-Utilité :
-Facilite l’analyse ciblée selon le type de transcrit (ex : interactions TF-lncRNA).
+#Utilité :
+#Facilite l’analyse ciblée selon le type de transcrit (ex : interactions TF-lncRNA).
 
-Ce Sript peut etre fusionner avec les autre script transcript_ 
-"""
+
 # =============================================================================
 
 
@@ -50,6 +47,14 @@ DEG_lncRNA = data[data$Type == 'lncRNA', ]
 
 #===================================================================================================
 #reécrit les fichiers 
+
+# Vérifier si le répertoire Output existe
+if (!dir.exists("Interaction/Input/")) {
+  # Créer le répertoire s'il n'existe pas
+  dir.create("Interaction/Input/", recursive = TRUE)
+}
+
+
 write.csv(DEG_TF, file = "Interaction/Input/DEG_TF.csv", row.names = TRUE)
 
 write.csv(DEG_GENE, file = "Interaction/Input/DEG_GENE.csv", row.names = TRUE)

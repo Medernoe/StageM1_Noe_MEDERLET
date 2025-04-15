@@ -2,10 +2,10 @@
 
 #Ce programme remplace les spot_id par les gene_id en usant des gene_id mis à jour à partir de conversion_oldID_to_newID
 
-#Input : Conversion/Output/   update_gene_mapping.csv
-#        DEG/Output/          DEG_results_gene.csv
-#        Conversion/Output/   dico_id.json
-#Output : Transcript/Input/   DEG_updated_gene.csv
+#Input : Data/Conversion/Output/   update_gene_mapping.csv
+#        Data/DEG/Output/          DEG_results_gene.csv
+#        Data/Conversion/Output/   dico_id.json
+#Output : Data/Transcript/Input/   DEG_updated_gene.csv
 
 
 
@@ -74,6 +74,12 @@ for (i in 1:nrow(df_final_gene)) {
 }
 
 
+# Vérifier si le répertoire Output existe
+if (!dir.exists("Transcript/Input/")) {
+  # Créer le répertoire s'il n'existe pas
+  dir.create("Transcript/Input/", recursive = TRUE)
+}
+
 # Écrire le fichier CSV------------------------------------------------------------------------------------------
 write.csv(df_final_gene, file = "Transcript/Input/DEG_updated_gene.csv", row.names = TRUE)
 
@@ -81,10 +87,10 @@ write.csv(df_final_gene, file = "Transcript/Input/DEG_updated_gene.csv", row.nam
 #=============================================================================================================
 #Conversion des fichiers avant DEG - inutilisé pour le moment 
 
-data_CONTROL_19422 <- read.csv("Pre-traitement/Output/DATA19422_CONTROL.csv")
-data_PCC_19422 <- read.csv("Pre-traitement/Output/DATA19422_PCC.csv")
+#data_CONTROL_19422 <- read.csv("Pre-traitement/Output/DATA19422_CONTROL.csv")
+#data_PCC_19422 <- read.csv("Pre-traitement/Output/DATA19422_PCC.csv")
 
-df_PCC_final <- merge(data_PCC_19422, ref_names, by.x = "X", by.y = "SPOT_ID", all.x = TRUE)
-df_CONTROL_final <- merge(data_CONTROL_19422, ref_names, by.x = "X", by.y = "SPOT_ID", all.x = TRUE)
+#df_PCC_final <- merge(data_PCC_19422, ref_names, by.x = "X", by.y = "SPOT_ID", all.x = TRUE)
+#df_CONTROL_final <- merge(data_CONTROL_19422, ref_names, by.x = "X", by.y = "SPOT_ID", all.x = TRUE)
 
 
