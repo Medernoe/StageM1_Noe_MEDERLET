@@ -8,8 +8,8 @@ Il utilise aussi une liste externe de facteurs de transcription humains pour rec
 les gènes codants en "TF" si applicable.
 
 Input :
-- DEG_updated_gene.csv : fichier contenant une colonne "Symbol" avec les noms des gènes
-- Homo_sapiens_TF.txt : fichier tabulé contenant une liste de symboles de facteurs de transcription
+- Data/Transcript/Input/  DEG_updated_gene.csv : fichier contenant une colonne "Symbol" avec les noms des gènes
+- Data/Transcript/Output/ requete decoupler collecTRI
 
 Output :
 - DEG_complete.csv : même tableau que l'entrée, avec une colonne ajoutée "Type" indiquant :
@@ -27,8 +27,11 @@ Il est necessaire de modifier ce code en le fusionnant avec transcript_collecTRI
 """
 
 
-import requests
+import requests #permet de faire les requetes API ensembl
 import pandas as pd 
+import decoupler as dc #permet de récupérer les datas de collecTRI
+import os 
+
 
 #%% Fonction pour interroger l'API d'Ensembl à partir d'un symbole de gène
 def requete_data(symbole = ""):
@@ -78,25 +81,32 @@ def isole_data(symbole):
 
 #%%
 # Dossiers d'entrée et sortie
-folder = "Data/Transcript/Input/"
+folder_input = "Data/Transcript/Input/"
 folder_output = "Data/Transcript/Output/"
 
-# Lecture du fichier des gènes différentiellement exprimés (DEG)
-gene = pd.read_csv(folder + "DEG_updated_gene.csv")
+# Vérifier si le répertoire output existe
+if not os.path.exists(folder_output):
+    os.makedirs(folder_output)
 
-#%% Lecture du fichier contenant les facteurs de transcription humains (TF)
+# Lecture du fichier des gènes différentiellement exprimés (DEG)
+gene = pd.read_csv(folder_input + "DEG_updated_gene.csv")
+
+#%% Utilisation de collecTRI afin de déterminer les TF humain 
 
 """
 Il est necessaire de modifier ici la symbol_list par les TF porvenant de collecTRI
 
 """
-with open(folder + "Homo_sapiens_TF.txt", "r", encoding="cp1252") as file:
-    lines = file.readlines()
 
-# Création d'une liste des symboles de TF à partir de la deuxième colonne (index 1)
-symbol_list = [line.split("\t")[1].strip() for line in lines[1:] if line.split("\t")[1].strip()]
+#Téléchargement des données collecTRI depuis decoupler (organisme humain)
+df = dc.get_collectri(organism='human', split_complexes=False)
+
+# Extraction des noms de gènes considérés comme TF dans collecTRI
+TF_list = list(df["source"]) 
 
 #%% Création d'une colonne "Type" en déterminant le biotype pour chaque symbole
+
+#initialise la list qui servira à creer la colonne type 
 biotypes = []
 i = 0
 total = len(gene["Symbol"])
@@ -107,9 +117,10 @@ for symbole in gene["Symbol"]:
 
     # Vérifie si c'est un TF dans notre liste
     if biotype == "protein_coding":
-        if symbole in symbol_list:
+        if symbole in TF_list:
             biotype = "TF"
-
+            
+    #remplie la list
     biotypes.append(biotype)
     print("=>" + biotypes[i])
     i += 1
