@@ -23,8 +23,7 @@ Sorties :
 - Data/Cytoscape/Input/nodes.csv  : liste des nœuds avec leur type (TF, miRNA, etc.)
 - Data/Cytoscape/Input/edge.csv   : liste des arêtes (interactions), direction, sens, score
 
-Utilisation :
-Ce script s'intègre dans un pipeline de visualisation de réseaux régulateurs sous Cytoscape.
+
 """
 
 import pandas as pd
@@ -104,6 +103,12 @@ df_interaction_miR = pd.concat(df_list, ignore_index=True)
 # Nettoyage du nom des miRNA
 df_interaction_miR['Source'] = df_interaction_miR['Source'].str.replace("hsa-miR-", "", regex=False)
 
+
+
+"""
+Peut etre modifier ici afin d'accélerer le processus CF'
+
+"""
 # Conversion des gene_id en symboles via dico_id
 with open("Data/Conversion/Output/dico_id.json", "r") as f:
     dico_id = json.load(f)

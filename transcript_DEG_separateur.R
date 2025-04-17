@@ -7,27 +7,24 @@
 #selon leur biotype pour créer des fichiers dédiés à chaque catégorie.
 
 #Input :
-#- Data/Transcript/Output/DEG_complete_collecTRI.csv : contient les colonnes 'Symbol' et 'Type'
+#- Data/Transcript/Output/DEG_final.csv : contient les colonnes 'Symbol' et 'Type'
 
 #Output :
 #- Data/Interaction/Input/DEG_TF.csv        : facteurs de transcription (Type == 'TF')
 #- Data/Interaction/Input/DEG_GENE.csv      : gènes codants classiques (Type == 'protein_coding')
 #- Data/Interaction/Input/DEG_lncRNA.csv    : ARN longs non codants (Type == 'lncRNA')
 
+
 #Remarque :
 #Les entrées où le champ 'Symbol' est vide sont retirées (n = 146 ici).
+#possibilité de rajouter les autres types de transcripts trouvé 
 
-#Utilité :
-#Facilite l’analyse ciblée selon le type de transcrit (ex : interactions TF-lncRNA).
 
 
 # =============================================================================
 
 
-# Définir le répertoire de travail
-setwd("/home/medernoe/Ubuntu_user/Stage_M1_ubuntu/StageM1_git/Data")
-
-data = read.csv("Transcript/Output/DEG_complete_collecTRI.csv")
+data = read.csv("Data/Transcript/Output/DEG_final.csv")
 
 table(data$Type)
 
@@ -49,16 +46,17 @@ DEG_lncRNA = data[data$Type == 'lncRNA', ]
 #reécrit les fichiers 
 
 # Vérifier si le répertoire Output existe
-if (!dir.exists("Interaction/Input/")) {
+if (!dir.exists("Data/Interaction/Input/")) {
   # Créer le répertoire s'il n'existe pas
-  dir.create("Interaction/Input/", recursive = TRUE)
+  dir.create("Data/Interaction/Input/", recursive = TRUE)
 }
 
 
-write.csv(DEG_TF, file = "Interaction/Input/DEG_TF.csv", row.names = TRUE)
+write.csv(DEG_TF, file = "Data/Interaction/Input/DEG_TF.csv", row.names = TRUE)
 
-write.csv(DEG_GENE, file = "Interaction/Input/DEG_GENE.csv", row.names = TRUE)
+write.csv(DEG_GENE, file = "Data/Interaction/Input/DEG_GENE.csv", row.names = TRUE)
 
-write.csv(DEG_lncRNA, file = "Interaction/Input/DEG_lncRNA.csv", row.names = TRUE)
+write.csv(DEG_lncRNA, file = "Data/Interaction/Input/DEG_lncRNA.csv", row.names = TRUE)
 
+print("fin de la séparation des fichiers de DEG")
 

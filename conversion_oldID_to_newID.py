@@ -8,8 +8,15 @@ import os
 Ce programme met à jour une liste d'identifiants de gènes (GeneID) en interrogeant la base NCBI.
 Il vérifie si les identifiants sont encore valides, les met à jour si nécessaire, et récupère les symboles génétiques associés.
 
-Input : Data/Conversion/Input/ merged_mapping_export.csv
-Output : Data/Conversion/Output/ update_gene_mapping.csv dico_id.json id_updated.json dico_controle.json
+Input : Data/Conversion/Input/ 
+- merged_mapping_export.csv
+
+Output : Data/Conversion/Output/ 
+- update_gene_mapping.csv : contient les spot_id, gene_id à jour 
+- dico_id.json : contient pour un gene_id, son symbole ainsi que ses transcripts 
+- id_updated.json : list complète de tous les id à jours 
+- dico_controle.json : metadatas du nombre de version obsolète, à jours, ... Difficile à lire, correspond aux différentes voies empruntées 
+
 """
 
 # Fonction récursive pour extraire les accession RefSeq d'une structure JSON
@@ -114,17 +121,11 @@ def scoring_values(x, y, z):
     return sum(1 for data in list_data if data is not None)
 
 #%% Chargement des données initiales
+print("Début du programme de conversion des anciens ID au nouveaux.")
 
 #input
 folder_intput = "Data/Conversion/Input/"
 file_data = "merged_mapping_export.csv"
-
-#output
-folder_output = "Data/Conversion/Output/"
-# Vérifier si le répertoire output existe
-if not os.path.exists(folder_output):
-    os.makedirs(folder_output)
-
 df = pd.read_csv(folder_intput + file_data, dtype=str, na_filter=False)
 total = len(df["GENE_4133"])
 
@@ -201,7 +202,8 @@ for i in range(0, total):
     if gene_id not in dico_id:
         dico_id[gene_id] = {"symbole": symbole, "refseq": refseq}
 
-    # Sauvegarde temporaire tous les 1000 gènes
+    # Sauvegarde temporaire tous les 1000 gènes mis en commentaire pour le pipeline nextflow
+    """
     if i % 1000 == 0:
         print(f"Sauvegarde de la liste id_updated après {i} gènes.")
         with open(folder_output + f"id_updated_{i}.json", "w") as f:
@@ -210,9 +212,15 @@ for i in range(0, total):
             json.dump(controle, f)
         with open(folder_output + f"dico_id_{i}.json", "w") as f:
             json.dump(dico_id, f)
-
+    """
+    
 #%% Export final
 
+#output
+folder_output = "Data/Conversion/Output/"
+# Vérifier si le répertoire output existe
+if not os.path.exists(folder_output):
+    os.makedirs(folder_output)
 with open(folder_output + "dico_id.json", "w") as f:
     json.dump(dico_id, f)
 
@@ -225,4 +233,4 @@ with open(folder_output + "dico_controle.json", "w") as f:
 df["UPDATED_GENE_ID"] = id_updated
 df.to_csv(folder_output + "update_gene_mapping.csv", index=False)
 
-print("fin du programme !!")
+print("fin du programme de conversion !!")

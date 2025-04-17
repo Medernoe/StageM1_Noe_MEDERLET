@@ -3,13 +3,11 @@
 
 #Ce programme réalise la DEG des miRNA (GSE29742), et exporte uniquement les données significatif (pvalue.adj < 0.05)
 
-#Input : Pre-traitement/Output/    miRNA_CONTROL.csv miRNA_PCC.csv
-#Output : DEG/Output/     DEG_results_miRNA.csv volcano_plot_miRNA.png
+#Input : Data/Pre-traitement/Output/    miRNA_CONTROL.csv miRNA_PCC.csv
+#Output : Data/DEG/Output/     DEG_results_miRNA.csv volcano_plot_miRNA.png
+#         Data/Interaction/Input/     DEG_miRNA.csv
 
-
-
-# Définir le répertoire d'input
-setwd("/home/medernoe/Ubuntu_user/Stage_M1_ubuntu/StageM1_git/Data")
+#informations : une version possédant le code pour une heatmap est trouvable dans : Commits on Apr 15, 2025
 
 
 # Charger les bibliothèques nécessaires
@@ -18,8 +16,8 @@ library(ggplot2)
 library(pheatmap)
 
 # Importer les données de contrôle et de PCC
-control_data <- read.csv("Pre-traitement/Output/miRNA_CONTROL.csv", row.names=1)
-pcc_data <- read.csv("Pre-traitement/Output/miRNA_PCC.csv", row.names=1)
+control_data <- read.csv("Data/Pre-traitement/Output/miRNA_CONTROL.csv", row.names=1)
+pcc_data <- read.csv("Data/Pre-traitement/Output/miRNA_PCC.csv", row.names=1)
 
 # Combiner les données de contrôle et de PCC
 combined_data <- cbind(control_data, pcc_data)
@@ -69,44 +67,22 @@ plot <- ggplot(results, aes(x = logFC, y = -log10(P.Value), color = Significance
 
 print(plot)
 
-
-
-#heatmap - brouillon 
-dev.new()
-
-# Assurer que combined_data est bien une matrice numérique
-data_matrix <- as.matrix(combined_data)
-mode(data_matrix) <- "numeric"
-
-# Vérifier que les gènes DEG existent dans la matrice
-common_genes <- intersect(rownames(deg_results), rownames(data_matrix))
-
-# Extraire uniquement les gènes DEG pour la heatmap
-heatmap_data <- data_matrix[common_genes, ]
-
-# Vérifier que les données ne contiennent pas de valeurs NA
-heatmap_data <- na.omit(heatmap_data)
-
-# plot
-plot2 <- pheatmap(heatmap_data, scale="row", main="Heatmap des DEG", color=colorRampPalette(c("blue", "white", "red"))(50))
-
-print(plot2)
 #export ------------------------------------------------------------------------------------------
 # Trier les résultats par logFC
 deg_results_sorted <- deg_results[order(deg_results$logFC, decreasing=TRUE),]
 
 # Vérifier si le répertoire Output existe
-if (!dir.exists("DEG/Output")) {
+if (!dir.exists("Data/DEG/Output")) {
   # Créer le répertoire s'il n'existe pas
-  dir.create("DEG/Output", recursive = TRUE)
+  dir.create("Data/DEG/Output", recursive = TRUE)
 }
 
 
 # Enregistrer les résultats
-write.csv(deg_results_sorted, "DEG/Output/DEG_results_miRNA.csv")
+write.csv(deg_results_sorted, "Data/DEG/Output/DEG_results_miRNA.csv")
 
 # Enregistrer le vplot 
-ggsave("DEG/Output/volcano_plot_miRNA.png")
+ggsave("Data/DEG/Output/volcano_plot_miRNA.png")
 
 
 #export dans l'input d'interaction 
@@ -117,6 +93,9 @@ if (!dir.exists("Data/Interaction/Input")) {
 }
 
 # Enregistrer les résultats
-write.csv(deg_results_sorted, "Data/Interaction/Input/DEG_results_miRNA.csv")
+write.csv(deg_results_sorted, "Data/Interaction/Input/DEG_miRNA.csv")
+
+print("Fin de l'étape DEG pour les miRNA.")
+
 
 
