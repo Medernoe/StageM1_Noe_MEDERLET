@@ -20,6 +20,7 @@ rule all:
             "miRNA_PGL.csv",
             "miRNA_CONTROL.csv",
         ]),
+
         # DEG outputs
         expand(deg_out + "{file}", file=[
             "DEG_results_gene.csv",
@@ -27,8 +28,10 @@ rule all:
             "DEG_results_miRNA.csv",
             "volcano_plot_miRNA.png",
         ]),
+
         # Interaction input from DEG_miRNA
         inter_in + "DEG_miRNA.csv",
+
         # Conversion outputs
         expand(conv_out + "{file}", file=[
             "update_gene_mapping.csv",
@@ -36,15 +39,29 @@ rule all:
             "id_updated.json",
             "dico_controle.json",
         ]),
+
         # Transcript conversion & separation
         trans_in + "DEG_updated_gene.csv",
         trans_out + "DEG_final.csv",
+
         # Transcript separation outputs
         expand(inter_in + "{file}", file=[
             "DEG_TF.csv",
             "DEG_GENE.csv",
             "DEG_lncRNA.csv",
-        ])
+        ]),
+        
+        # Prediction output
+        expand(inter_out + "{file}", file =[
+            "interaction_miRNA_TF.json",
+            "interaction_miRNA_GENE.json",
+            "interaction_miRNA_lncRNA.json", 
+            "interaction_TF_TF.json",
+            "interaction_TF_GENE.json", 
+            "interaction_TF_lncRNA.json",
+        ]),
+
+        
 
 # 1) Pré-traitements
 rule pre_traitement_gene:
@@ -151,3 +168,34 @@ rule transcript_separate:
         Rscript {script_dir}/transcript_DEG_separateur.R
         """
 
+# 5) Prediction des interactions 
+rule Interaction_miRNA:
+    input:
+        inter_in + "DEG_miRNA.csv",
+        inter_in + "DEG_TF.csv",
+        inter_in + "DEG_GENE.csv",
+        inter_in + "DEG_lncRNA.csv",
+    output:
+        inter_out + "interaction_miRNA_TF.json",
+        inter_out + "interaction_miRNA_GENE.json",
+        inter_out + "interaction_miRNA_lncRNA.json",
+    shell:
+        """
+        mkdir -p {inter_out}
+        python3 {script_dir}/interaction_miRNA.py
+        """
+
+rule Interaction_TF:
+    input:
+        inter_in + "DEG_TF.csv",
+        inter_in + "DEG_GENE.csv",
+        inter_in + "DEG_lncRNA.csv",
+    output:
+        inter_out + "interaction_TF_TF.json",
+        inter_out + "interaction_TF_GENE.json",
+        inter_out + "interaction_TF_lncRNA.json",
+    shell:
+        """
+        mkdir -p {inter_out}
+        python3 {script_dir}/interaction_TF.py
+        """
