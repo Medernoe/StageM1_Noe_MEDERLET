@@ -13,7 +13,6 @@
 # Charger les bibliothèques nécessaires
 library(limma)
 library(ggplot2)
-library(pheatmap)
 
 # Importer les données de contrôle et de PCC
 control_data <- read.csv("Data/Pre-traitement/Output/miRNA_CONTROL.csv", row.names=1)
