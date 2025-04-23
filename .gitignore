@@ -1,8 +1,16 @@
 # Ignorer les répertoires 
 Data/
 MetaData/
+work/ 
 
 # logs et caches Nextflow
 .nextflow.log*
 .nextflow/
+nextflow.config 
+main.nf 
 
+# Ignorer les GPL
+GPL*
+
+# Snakemake
+.snakemake/
