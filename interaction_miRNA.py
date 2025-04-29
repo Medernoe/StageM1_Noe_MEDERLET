@@ -47,16 +47,32 @@ def miR_name_mimat(miR_name):
     mycursor = mydb.cursor()
     mycursor.execute("USE mirabel") 
     
-    mycursor.execute(f"""SELECT miR_mimat.number, mimat.number, predictions2.mimat
-                    FROM miR
-                    JOIN miR_mimat ON miR.id = miR_mimat.mir_id
-                    JOIN mimat ON miR_mimat.number = mimat.number
-                    JOIN predictions2 ON mimat.number = predictions2.mimat
-                    WHERE miR.nameR = "{miR_name}"
-                    LIMIT 1;""")
+    mycursor.execute(f"""SELECT  miR_mimat.number
+                     FROM miR_mimat
+                     JOIN miR ON miR_mimat.mir_id = miR.id
+                     WHERE miR.nameR = "{miR_name}"
+                     LIMIT 1;""")
+                    
+    mimat = mycursor.fetchall()[0][0]
     
-    myresult = mycursor.fetchall()
     mycursor.close()
+    return mimat
+
+#%% Fonction : de mije à jours du mimat 
+def mirname_updated_by_mimat(mimat) :
+    mycursor = mydb.cursor()
+    mycursor.execute("USE mirabel") 
+    
+    mycursor.execute(f"""SELECT miR.nameR
+                     FROM miR
+                     JOIN miR_mimat ON miR_mimat.mir_id = miR.id
+                     WHERE miR_mimat.number = "{mimat}"
+                     AND miR_mimat.MBversion = "21";""") #21 est la derniere version de MirBase utilisé dans mirabel. 
+    
+    myresult = mycursor.fetchall()[0][0]
+    
+    mycursor.close()
+    
     return myresult
 
 #%% Fonction : récupération d'une interaction gene-miRNA
@@ -101,7 +117,7 @@ for biotype in transcript_types :
     full_path = folder_input + file_data
     data = pd.read_csv(full_path, dtype=str, na_filter=False)
 
-
+    list_mirname = []
     list_mimat = []
     total_miR = len(miRNA["Symbol"])
     total = len(data["Gene_id"])
@@ -111,12 +127,13 @@ for biotype in transcript_types :
     for mirname in miRNA["Symbol"]: 
         i += 1
         mimat = miR_name_mimat(mirname)
+        mirname = mirname_updated_by_mimat (mimat)
         
         if not mimat:
             print(f"Aucun mimat trouvé pour {mirname}")
             continue
-    
-        mimat = str(mimat[0][0])  # on extrait juste l'identifiant
+        
+        list_mirname.append(mirname)
         list_mimat.append(mimat)
         dico_interaction[mirname] = {}
     
