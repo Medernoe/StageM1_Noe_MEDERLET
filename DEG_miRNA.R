@@ -91,6 +91,8 @@ if (!dir.exists("Data/Interaction/Input")) {
   dir.create("Data/Interaction/Input", recursive = TRUE)
 }
 
+deg_results_sorted$Symbol = rownames(deg_results_sorted)
+
 # Enregistrer les résultats
 write.csv(deg_results_sorted, "Data/Interaction/Input/DEG_miRNA.csv")
 

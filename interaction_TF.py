@@ -56,7 +56,7 @@ TF = pd.read_csv(file_data_TF, dtype=str, na_filter=False, index_col=1)
 
 
 #ouverture du csv des tf, lncRNA, proteins_coding, etc  
-transcript_types = ["TF","GENE","lncRNA"] #à changer ici pour rajouter les types, ecrit au format similaire que dans les fichier DEG, sauf miRNA ou interaction miR-miR impossible
+transcript_types = ["TF","GENE","lncRNA","miRNA"] #à changer ici pour rajouter les types, ecrit au format similaire que dans les fichier DEG, sauf miRNA ou interaction miR-miR impossible
 #l'ouverture se fait dans la boucle plus bas 
 
 #%%=========================== 3. Prédiction des interactions ==============================
@@ -94,7 +94,7 @@ for biotype in transcript_types :
             del dico_interaction[tf]
     
     #=========================== 4. Sauvegarde en JSON ========================================
-    #%% Sauvegarde du dictionnaire d'interactions dans un fichier JSON
+    # Sauvegarde du dictionnaire d'interactions dans un fichier JSON
     full_name = f"interaction_TF_{biotype}.json"
     folder_output = "Data/Interaction/Output/"
       

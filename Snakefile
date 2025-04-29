@@ -59,6 +59,7 @@ rule all:
             "interaction_TF_TF.json",
             "interaction_TF_GENE.json", 
             "interaction_TF_lncRNA.json",
+            "interaction_TF_miRNA.json",
         ]),
 
         
@@ -194,6 +195,7 @@ rule Interaction_TF:
         inter_out + "interaction_TF_TF.json",
         inter_out + "interaction_TF_GENE.json",
         inter_out + "interaction_TF_lncRNA.json",
+        inter_out + "interaction_TF_miRNA.json",
     shell:
         """
         mkdir -p {inter_out}

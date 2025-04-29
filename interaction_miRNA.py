@@ -103,12 +103,12 @@ for biotype in transcript_types :
 
 
     list_mimat = []
-    total_miR = len(miRNA.iloc[:,0])
+    total_miR = len(miRNA["Symbol"])
     total = len(data["Gene_id"])
     i = 0
     dico_interaction = {}
     
-    for mirname in miRNA.iloc[:,0]: 
+    for mirname in miRNA["Symbol"]: 
         i += 1
         mimat = miR_name_mimat(mirname)
         
