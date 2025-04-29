@@ -3,8 +3,8 @@
 Script : generate_cytoscape_nodes_edges.py
 
 Description :
-Ce script génère deux fichiers (`nodes.csv` et `edge.csv`) destinés à l'import dans Cytoscape
-pour visualiser un réseau d'interactions régulatrices entre :
+Ce script génère deux fichiers (`nodes.csv` et `edge.csv`) destinés à l"import dans Cytoscape
+pour visualiser un réseau d"interactions régulatrices entre :
 - miRNA → gènes, TF, lncRNA
 - TF → gènes, TF, lncRNA
 
@@ -32,32 +32,36 @@ import json
 
 #%% =========================== NODES ===========================
 
-# Lecture des fichiers d'entrée (DEG par type)
+# Lecture des fichiers d"entrée (DEG par type)
 folder_in = "Data/Interaction/Input/"
-df_tf     = pd.read_csv(folder_in + "DEG_TF.csv",     usecols=["Symbol", "Type"])
-df_gene   = pd.read_csv(folder_in + "DEG_GENE.csv",   usecols=["Symbol", "Type"])
-df_lncRNA = pd.read_csv(folder_in + "DEG_lncRNA.csv", usecols=["Symbol", "Type"])
+df_tf     = pd.read_csv(folder_in + "DEG_TF.csv",     usecols=["Symbol", "Type", "logFC"])
+df_gene   = pd.read_csv(folder_in + "DEG_GENE.csv",   usecols=["Symbol", "Type", "logFC"])
+df_lncRNA = pd.read_csv(folder_in + "DEG_lncRNA.csv", usecols=["Symbol", "Type", "logFC"])
 
 # Cas particulier : le fichier miRNA a une structure différente
 df_miRNA = pd.read_csv(folder_in + "DEG_miRNA.csv")
-
-# On renomme la colonne de position 1 en "Symbol"
-df_miRNA.rename(columns={df_miRNA.columns[1]: "Symbol"}, inplace=True)
-
 # Suppression du préfixe "hsa-miR-"
-df_miRNA['Symbol'] = df_miRNA['Symbol'].str.replace("hsa-miR-", "", regex=False)
-
+df_miRNA["Symbol"] = df_miRNA["Symbol"].str.replace("hsa-miR-", "", regex=False)
 # Ajoute une colonne Type = "miRNA"
-df_miRNA['Type'] = 'miRNA'
-
+df_miRNA["Type"] = "miRNA"
 # Ne garder que les colonnes utiles
-df_miRNA = df_miRNA[['Symbol', 'Type']]
+df_miRNA = df_miRNA[["Symbol", "Type", "logFC"]]
+
+
 
 # Concatène les 4 types de nœuds dans un seul DataFrame
 df_concat = pd.concat([df_tf, df_gene, df_miRNA, df_lncRNA], ignore_index=True)
 
-# Supprime les doublons par symbole
-df_unique = df_concat.drop_duplicates(subset="Symbol")
+# ajouter une colonne temporaire avec la valeur absolue
+df_concat['abs_logFC'] = df_concat['logFC'].abs()
+
+# Pour chaque symbole, récupérer l'index de la plus petite valeur absolue
+idx = df_concat.groupby('Symbol')['abs_logFC'].idxmin()
+
+# ne conserver que ces lignes et supprimer la colonne temporaire
+df_unique = df_concat.loc[idx]
+df_unique = df_unique.drop(columns='abs_logFC')
+
 
 # Export du fichier de nœuds pour Cytoscape
 folder_out = "Data/Cytoscape/Input/"
@@ -89,8 +93,8 @@ for json_file in miRNA_json_files:
     for mir_name, targets in dico.items():
         for gene_id, infos in targets.items():
             data.append({
-                "Source": mir_name,
                 "Target": gene_id,
+                "Source": mir_name,
                 "score": infos["score"],
                 "sens" : -1,
                 "validation": infos["val"]
@@ -101,12 +105,12 @@ for json_file in miRNA_json_files:
 df_interaction_miR = pd.concat(df_list, ignore_index=True)
 
 # Nettoyage du nom des miRNA
-df_interaction_miR['Source'] = df_interaction_miR['Source'].str.replace("hsa-miR-", "", regex=False)
+df_interaction_miR["Source"] = df_interaction_miR["Source"].str.replace("hsa-miR-", "", regex=False)
 
 
 
 """
-Peut etre modifier ici afin d'accélerer le processus CF'
+Peut etre modifier ici le processus CF
 
 """
 # Conversion des gene_id en symboles via dico_id
@@ -123,7 +127,8 @@ df_interaction_miR["Target"] = df_interaction_miR["Target"].apply(convert_id_to_
 TF_json_files = [
     "interaction_TF_gene.json",
     "interaction_TF_lncRNA.json",
-    "interaction_TF_TF.json"
+    "interaction_TF_TF.json", 
+    "interaction_TF_miRNA.json"
 ]
 
 df_list = []
@@ -133,8 +138,8 @@ for json_file in TF_json_files:
     for TF_name, targets in dico.items():
         for gene_id, sens in targets.items():
             data.append({
-                "Source": TF_name,
                 "Target": gene_id,
+                "Source": mir_name,
                 "score": None,
                 "sens" : sens,
                 "validation": None
