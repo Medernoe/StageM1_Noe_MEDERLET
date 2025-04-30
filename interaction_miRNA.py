@@ -5,6 +5,8 @@ Ce script interroge une base de données MySQL locale (mirabel) pour récupérer
 entre des miRNAs différentiellement exprimés (DEG) et une liste de gènes (DEG aussi). Il utilise les IDs
 "mimat" associés aux miRNAs pour retrouver les interactions dans les tables SQL, puis trie les résultats 
 pour ne garder que les meilleures interactions (top 5% par score).
+Met à jour les noms des miR avec la version 21 de MirBase. 
+
 
 Input : Data/Interaction/Input/
 - DEG_miRNA.csv : fichier contenant les noms des miRNAs (colonne 1)
@@ -12,15 +14,18 @@ Input : Data/Interaction/Input/
 - DEG_TF.csv : fichier contenant les gene id ("Gene_id")- DEG_miRNA.csv : fichier contenant les noms des miRNAs (colonne 1)
 - DEG_GENE.csv : fichier contenant les gene id ("Gene_id")
 
+
 Output : Data/Interaction/Output/
 - interaction_miRNA_TF.json 
 - interaction_miRNA_lncRNA.json 
 - interaction_miRNA_GENE.json 
+# Data/Interaction/Input/  DEG_miRNA.csv : version mise à jours des miR
 
 Fonctions principales :
 - `miR_name_mimat()` : récupère le mimat (identifiant Ensembl) à partir du nom du miRNA
 - `gene_mirna_interaction()` : récupère les scores d'interaction entre un gène (gene_id) et un mimat
 - `pourcent_trie()` : trie et sélectionne le top 5% des interactions les plus fortes
+
 
 Remarques :
 - Ce script suppose que la base de données MySQL "mirabel" est installée localement.
@@ -165,6 +170,7 @@ for biotype in transcript_types :
     
     with open(folder_output + full_name, "w") as f:
         json.dump(dico_interaction, f)
-  
-                     
-            
+
+
+miRNA["Symbol"] = list_mirname 
+miRNA.to_csv(folder_input + "DEG_miRNA.csv", index=False)            

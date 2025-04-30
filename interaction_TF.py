@@ -8,12 +8,12 @@ en croisant :
 
 Les interactions sont conservées uniquement si la cible est présente dans le fichier d'entrée.
 
+
 Input : Data/Interaction/Input/
 - DEG_TF.csv : fichier CSV contenant les TF (colonne "Symbol")
 - DEG_lncRNA.csv : fichier contenant les gene id ("Gene_id")
-- DEG_TF.csv : fichier contenant les gene id ("Gene_id")- DEG_miRNA.csv : fichier contenant les noms des miRNAs (colonne 1)
+- DEG_miRNA.csv : fichier contenant les noms des miRNAs (colonne 1)
 - DEG_GENE.csv : fichier contenant les gene id ("Gene_id") 
-#- DEG_GENE.csv : fichier non implémenter pour le moment 
 
 
 Output : Data/Interaction/Output/
@@ -21,11 +21,6 @@ Output : Data/Interaction/Output/
 - interaction_TF_lncRNA.json 
 - interaction_TF_GENE.json 
 - interaction_TF_miRNA.json   #fonction non implémenter pour le moment 
-
-
-Output :
-- Un fichier JSON nommé : interaction_TF_<nom>.json (où <nom> = sys.argv[2])
-  enregistré dans le dossier : Data/Interaction/Output/
 
 
 Remarques :
