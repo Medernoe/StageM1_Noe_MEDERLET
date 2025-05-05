@@ -15,7 +15,7 @@ Entrées :
 - Data/Interaction/Input/DEG_TF.csv        TF exprimés
 - Data/Interaction/Input/DEG_GENE.csv      gènes codants exprimés
 - Data/Interaction/Input/DEG_lncRNA.csv    lncRNA exprimés
-- Data/Interaction/Input/DEG_miRNA.csv     miRNA exprimés
+- Data/Interaction/Input/DEG_miRNA_updated.csv     miRNA exprimés
 - Data/Conversion/Output/dico_id.json      dictionnaire GeneID => Symbol
 - Tous les fichiers JSON présents dans : Data/Interaction/Output/
 
@@ -39,7 +39,7 @@ df_gene   = pd.read_csv(folder_in + "DEG_GENE.csv",   usecols=["Symbol", "Type",
 #df_lncRNA = pd.read_csv(folder_in + "DEG_lncRNA.csv", usecols=["Symbol", "Type", "logFC"])
 
 # Cas particulier : le fichier miRNA a une structure différente
-df_miRNA = pd.read_csv(folder_in + "DEG_miRNA.csv")
+df_miRNA = pd.read_csv(folder_in + "DEG_miRNA_updated.csv")
 # Suppression du préfixe "hsa-miR-"
 df_miRNA["Symbol"] = df_miRNA["Symbol"].str.replace("hsa-miR-", "", regex=False)
 # Ajoute une colonne Type = "miRNA"

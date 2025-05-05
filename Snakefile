@@ -62,6 +62,9 @@ rule all:
             "interaction_TF_miRNA.json",
         ]),
 
+        # Prediction output from DEG_miRNA
+        inter_in + "DEG_miRNA_updated.csv",
+
         
 
 # 1) Pré-traitements
@@ -177,6 +180,7 @@ rule Interaction_miRNA:
         inter_in + "DEG_GENE.csv",
         inter_in + "DEG_lncRNA.csv",
     output:
+        inter_in + "DEG_miRNA_updated.csv",
         inter_out + "interaction_miRNA_TF.json",
         inter_out + "interaction_miRNA_GENE.json",
         inter_out + "interaction_miRNA_lncRNA.json",

@@ -132,7 +132,7 @@ for biotype in transcript_types :
     for mirname in miRNA["Symbol"]: 
         i += 1
         mimat = miR_name_mimat(mirname)
-        mirname = mirname_updated_by_mimat (mimat)
+        mirname = mirname_updated_by_mimat(mimat)
         
         if not mimat:
             print(f"Aucun mimat trouvé pour {mirname}")
@@ -171,6 +171,6 @@ for biotype in transcript_types :
     with open(folder_output + full_name, "w") as f:
         json.dump(dico_interaction, f)
 
-
+#enregistrement du fichier DEG avec les noms des miR à jours 
 miRNA["Symbol"] = list_mirname 
-miRNA.to_csv(folder_input + "DEG_miRNA.csv", index=False)            
+miRNA.to_csv(folder_input + "DEG_miRNA_updated.csv", index=False)            
