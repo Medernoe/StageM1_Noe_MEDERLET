@@ -36,7 +36,7 @@ import json
 folder_in = "Data/Interaction/Input/"
 df_tf     = pd.read_csv(folder_in + "DEG_TF.csv",     usecols=["Symbol", "Type", "logFC"])
 df_gene   = pd.read_csv(folder_in + "DEG_GENE.csv",   usecols=["Symbol", "Type", "logFC"])
-df_lncRNA = pd.read_csv(folder_in + "DEG_lncRNA.csv", usecols=["Symbol", "Type", "logFC"])
+#df_lncRNA = pd.read_csv(folder_in + "DEG_lncRNA.csv", usecols=["Symbol", "Type", "logFC"])
 
 # Cas particulier : le fichier miRNA a une structure différente
 df_miRNA = pd.read_csv(folder_in + "DEG_miRNA.csv")
@@ -50,7 +50,8 @@ df_miRNA = df_miRNA[["Symbol", "Type", "logFC"]]
 
 
 # Concatène les 4 types de nœuds dans un seul DataFrame
-df_concat = pd.concat([df_tf, df_gene, df_miRNA, df_lncRNA], ignore_index=True)
+#df_concat = pd.concat([df_tf, df_gene, df_miRNA, df_lncRNA], ignore_index=True)
+df_concat = pd.concat([df_tf, df_gene, df_miRNA], ignore_index=True)
 
 # ajouter une colonne temporaire avec la valeur absolue
 df_concat['abs_logFC'] = df_concat['logFC'].abs()
@@ -95,7 +96,7 @@ for json_file in miRNA_json_files:
             data.append({
                 "Target": gene_id,
                 "Source": mir_name,
-                "score": infos["score"],
+                #score": infos["score"],
                 "sens" : -1,
                 "validation": infos["val"]
             })
@@ -140,9 +141,9 @@ for json_file in TF_json_files:
             data.append({
                 "Target": gene_id,
                 "Source": mir_name,
-                "score": None,
+                #"score": None,
                 "sens" : sens,
-                "validation": None
+                "validation": 1
             })
     df_list.append(pd.DataFrame(data))
 
