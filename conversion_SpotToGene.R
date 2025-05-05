@@ -32,9 +32,11 @@ ref_names <- updated_mapping[,c(2,11)]
 #suppresion des lignes contenant des Na 
 ref_names <- ref_names[!is.na(ref_names$UPDATED_GENE_ID), ]
 
-df_final <- merge(DEG_gene, ref_names, by.x = "X", by.y = "SPOT_ID", all.x = TRUE)
+df_1 <- merge(DEG_gene, ref_names, by.x = "X", by.y = "SPOT_ID", all.x = TRUE)
 
-df_final_gene = df_final[!is.na(df_final$UPDATED_GENE_ID),]
+df_2 <- df_1[!duplicated(df_1), ]
+
+df_final_gene = df_2[!is.na(df_2$UPDATED_GENE_ID),]
 
 
 #modification du nom de la colonne 
@@ -63,14 +65,13 @@ for (i in 1:nrow(df_final_gene)) {
   }
 }
 
-
+# Écrire le fichier CSV------------------------------------------------------------------------------------------
 # Vérifier si le répertoire Output existe
 if (!dir.exists("Data/Transcript/Input/")) {
   # Créer le répertoire s'il n'existe pas
   dir.create("Data/Transcript/Input/", recursive = TRUE)
 }
 
-# Écrire le fichier CSV------------------------------------------------------------------------------------------
 write.csv(df_final_gene, file = "Data/Transcript/Input/DEG_updated_gene.csv", row.names = TRUE)
 
 print("fin de la conversion des anciens id avec les nouveaux.")
