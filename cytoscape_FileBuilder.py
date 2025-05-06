@@ -15,7 +15,7 @@ Entrées :
 - Data/Interaction/Input/DEG_TF.csv        TF exprimés
 - Data/Interaction/Input/DEG_GENE.csv      gènes codants exprimés
 - Data/Interaction/Input/DEG_lncRNA.csv    lncRNA exprimés
-- Data/Interaction/Input/DEG_miRNA_updated.csv     miRNA exprimés
+- Data/Interaction/Input/DEG_miRNA.csv     miRNA exprimés
 - Data/Conversion/Output/dico_id.json      dictionnaire GeneID => Symbol
 - Tous les fichiers JSON présents dans : Data/Interaction/Output/
 
@@ -39,7 +39,7 @@ df_gene   = pd.read_csv(folder_in + "DEG_GENE.csv",   usecols=["Symbol", "Type",
 #df_lncRNA = pd.read_csv(folder_in + "DEG_lncRNA.csv", usecols=["Symbol", "Type", "logFC"])
 
 # Cas particulier : le fichier miRNA a une structure différente
-df_miRNA = pd.read_csv(folder_in + "DEG_miRNA_updated.csv")
+df_miRNA = pd.read_csv(folder_in + "DEG_miRNA.csv")
 # Suppression du préfixe "hsa-miR-"
 df_miRNA["Symbol"] = df_miRNA["Symbol"].str.replace("hsa-miR-", "", regex=False)
 # Ajoute une colonne Type = "miRNA"
@@ -51,22 +51,24 @@ df_miRNA = df_miRNA[["Symbol", "Type", "logFC"]]
 
 # Concatène les 4 types de nœuds dans un seul DataFrame
 #df_concat = pd.concat([df_tf, df_gene, df_miRNA, df_lncRNA], ignore_index=True)
-df_concat = pd.concat([df_tf, df_gene, df_miRNA], ignore_index=True)
+df_nodes_concat = pd.concat([df_tf, df_gene, df_miRNA], ignore_index=True)
 
+
+#Selectionner les lignes duplliqué en fonction de la plus grosse dérégulation 
 # ajouter une colonne temporaire avec la valeur absolue
-df_concat['abs_logFC'] = df_concat['logFC'].abs()
-
-# Pour chaque symbole, récupérer l'index de la plus petite valeur absolue
-idx = df_concat.groupby('Symbol')['abs_logFC'].idxmin()
-
+df_nodes_concat['abs_logFC'] = df_nodes_concat['logFC'].abs()
+# Pour chaque symbole, récupérer l'index de la plus petite valeur absolue, idxmax ou idxmin
+idx = df_nodes_concat.groupby('Symbol')['abs_logFC'].idxmax()
 # ne conserver que ces lignes et supprimer la colonne temporaire
-df_unique = df_concat.loc[idx]
-df_unique = df_unique.drop(columns='abs_logFC')
+df_nodes_unique = df_nodes_concat.loc[idx]
+df_nodes_unique = df_nodes_unique.drop(columns='abs_logFC')
 
+
+df_nodes_final = pd.DataFrame.reindex(df_nodes_unique, columns=["Symbol", "Type", "logFC"])
 
 # Export du fichier de nœuds pour Cytoscape
 folder_out = "Data/Cytoscape/Input/"
-df_unique.to_csv(folder_out + "nodes.csv", index=False)
+df_nodes_final.to_csv(folder_out + "nodes.csv", index=False)
 
 #%% =========================== EDGE (1) : chargement des fichiers JSON ===========================
 
@@ -81,22 +83,26 @@ for file_name in os.listdir(folder_json):
 
 #%% =========================== EDGE (2) : interactions miRNA → autres ===========================
 
+#list des fichiers d'interactions (json) 
 miRNA_json_files = [
-    "interaction_miRNA_gene.json",
-    "interaction_miRNA_lncRNA.json",
+    #"interaction_miRNA_lncRNA.json",
+    "interaction_miRNA_GENE.json",
     "interaction_miRNA_TF.json"
 ]
 
 df_list = []
+#parcour les fichiers d'interactions 
 for json_file in miRNA_json_files:
     dico = json_contents.get(json_file, {})
     data = []
+    #un mir et sa cible 
     for mir_name, targets in dico.items():
+        
         for gene_id, infos in targets.items():
             data.append({
                 "Target": gene_id,
                 "Source": mir_name,
-                #score": infos["score"],
+                #"score": infos["score"],
                 "sens" : -1,
                 "validation": infos["val"]
             })
@@ -111,7 +117,7 @@ df_interaction_miR["Source"] = df_interaction_miR["Source"].str.replace("hsa-miR
 
 
 """
-Peut etre modifier ici le processus CF
+Peut etre modifier ici le processus de conversion ou plus tot et ne travailler que sur les gene symbol 
 
 """
 # Conversion des gene_id en symboles via dico_id
@@ -126,8 +132,8 @@ df_interaction_miR["Target"] = df_interaction_miR["Target"].apply(convert_id_to_
 #%% =========================== EDGE (3) : interactions TF → autres ===========================
 
 TF_json_files = [
-    "interaction_TF_gene.json",
-    "interaction_TF_lncRNA.json",
+    #"interaction_TF_lncRNA.json",
+    "interaction_TF_GENE.json",
     "interaction_TF_TF.json", 
     "interaction_TF_miRNA.json"
 ]
@@ -140,7 +146,7 @@ for json_file in TF_json_files:
         for gene_id, sens in targets.items():
             data.append({
                 "Target": gene_id,
-                "Source": mir_name,
+                "Source": TF_name,
                 #"score": None,
                 "sens" : sens,
                 "validation": 1
@@ -155,6 +161,6 @@ df_interaction_TF = pd.concat(df_list, ignore_index=True)
 df_concat = pd.concat([df_interaction_miR, df_interaction_TF], ignore_index=True)
 
 # Export du fichier final d’arêtes
-df_concat.to_csv(folder_out + "edge.csv", index=False)
+df_concat.to_csv(folder_out + "edges.csv", index=False)
 
-print("Fichiers nodes.csv et edge.csv générés avec succès dans :", folder_out)
+print("Fichiers nodes.csv et edges.csv générés avec succès dans :", folder_out)
