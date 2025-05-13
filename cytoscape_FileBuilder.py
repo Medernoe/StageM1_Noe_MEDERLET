@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 """
 Script : generate_cytoscape_nodes_edges.py
 
@@ -49,7 +50,7 @@ df_miRNA = df_miRNA[["Symbol", "Type", "logFC"]]
 
 
 
-# Concatène les 4 types de nœuds dans un seul DataFrame
+# Concatène les 3/4 types de nœuds dans un seul DataFrame
 #df_concat = pd.concat([df_tf, df_gene, df_miRNA, df_lncRNA], ignore_index=True)
 df_nodes_concat = pd.concat([df_tf, df_gene, df_miRNA], ignore_index=True)
 
@@ -62,13 +63,43 @@ idx = df_nodes_concat.groupby('Symbol')['abs_logFC'].idxmax()
 # ne conserver que ces lignes et supprimer la colonne temporaire
 df_nodes_unique = df_nodes_concat.loc[idx]
 df_nodes_unique = df_nodes_unique.drop(columns='abs_logFC')
-
-
 df_nodes_final = pd.DataFrame.reindex(df_nodes_unique, columns=["Symbol", "Type", "logFC"])
+
 
 # Export du fichier de nœuds pour Cytoscape
 folder_out = "Data/Cytoscape/Input/"
+if not os.path.exists(folder_out):
+    os.makedirs(folder_out)
+     
+     
 df_nodes_final.to_csv(folder_out + "nodes.csv", index=False)
+
+
+#%%% Creation des différent tableau pour l'enrichissement 
+
+
+# Répertoire de l'enrichissement fonctionnel 
+folder_GO = "Data/Enrichissement/Input/"
+if not os.path.exists(folder_GO):
+    os.makedirs(folder_GO)
+    
+# Sélectionner les lignes où la colonne Symbol vaut 'TF', 'miRNA, ou/et 'protein_coding'
+df_GO = df_nodes_final[(df_nodes_final['Type'] == 'TF') 
+                             | 
+                             (df_nodes_final['Type'] == 'protein_coding') 
+                             ]
+
+df_GO_TF = df_nodes_final[df_nodes_final['Type'] == 'TF'] 
+df_GO_GENE = df_nodes_final[df_nodes_final['Type'] == 'protein_coding'] 
+df_GO_miRNA = df_nodes_final[df_nodes_final['Type'] == 'miRNA'] 
+
+
+#export
+df_GO.to_csv(folder_GO + "GO.csv", index=False)
+df_GO_TF.to_csv(folder_GO + "GO_TF.csv", index=False)
+df_GO_GENE.to_csv(folder_GO + "GO_GENE.csv", index=False)
+df_GO_miRNA.to_csv(folder_GO + "GO_miRNA.csv", index=False)
+
 
 #%% =========================== EDGE (1) : chargement des fichiers JSON ===========================
 
@@ -158,9 +189,9 @@ df_interaction_TF = pd.concat(df_list, ignore_index=True)
 #%% =========================== EDGE (4) : fusion finale et export ===========================
 
 # Concatène interactions TF et miRNA
-df_concat = pd.concat([df_interaction_miR, df_interaction_TF], ignore_index=True)
+df_edges_concat = pd.concat([df_interaction_miR, df_interaction_TF], ignore_index=True)
 
 # Export du fichier final d’arêtes
-df_concat.to_csv(folder_out + "edges.csv", index=False)
+df_edges_concat.to_csv(folder_out + "edges.csv", index=False)
 
 print("Fichiers nodes.csv et edges.csv générés avec succès dans :", folder_out)
