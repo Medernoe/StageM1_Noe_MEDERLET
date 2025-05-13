@@ -179,6 +179,7 @@ rule Interaction_miRNA:
         inter_in + "DEG_TF.csv",
         inter_in + "DEG_GENE.csv",
         inter_in + "DEG_lncRNA.csv",
+
     output:
         inter_in + "DEG_miRNA_updated.csv",
         inter_out + "interaction_miRNA_TF.json",
@@ -192,6 +193,7 @@ rule Interaction_miRNA:
 
 rule Interaction_TF:
     input:
+        inter_in + "DEG_miRNA.csv",
         inter_in + "DEG_TF.csv",
         inter_in + "DEG_GENE.csv",
         inter_in + "DEG_lncRNA.csv",
