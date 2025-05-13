@@ -35,14 +35,12 @@ import json
 
 # Lecture des fichiers d"entrée (DEG par type)
 folder_in = "Data/Interaction/Input/"
-df_tf     = pd.read_csv(folder_in + "DEG_TF.csv",     usecols=["Symbol", "Type", "logFC"])
-df_gene   = pd.read_csv(folder_in + "DEG_GENE.csv",   usecols=["Symbol", "Type", "logFC"])
-#df_lncRNA = pd.read_csv(folder_in + "DEG_lncRNA.csv", usecols=["Symbol", "Type", "logFC"])
+df_tf     = pd.read_csv(folder_in + "DEG_TF.csv",     usecols=["Symbol", "Type", "logFC","Gene_id"])
+df_gene   = pd.read_csv(folder_in + "DEG_GENE.csv",   usecols=["Symbol", "Type", "logFC","Gene_id"])
+#df_lncRNA = pd.read_csv(folder_in + "DEG_lncRNA.csv", usecols=["Symbol", "Type", "logFC","Gene_id"])
 
 # Cas particulier : le fichier miRNA a une structure différente
 df_miRNA = pd.read_csv(folder_in + "DEG_miRNA.csv")
-# Suppression du préfixe "hsa-miR-"
-df_miRNA["Symbol"] = df_miRNA["Symbol"].str.replace("hsa-miR-", "", regex=False)
 # Ajoute une colonne Type = "miRNA"
 df_miRNA["Type"] = "miRNA"
 # Ne garder que les colonnes utiles
@@ -63,8 +61,12 @@ idx = df_nodes_concat.groupby('Symbol')['abs_logFC'].idxmax()
 # ne conserver que ces lignes et supprimer la colonne temporaire
 df_nodes_unique = df_nodes_concat.loc[idx]
 df_nodes_unique = df_nodes_unique.drop(columns='abs_logFC')
-df_nodes_final = pd.DataFrame.reindex(df_nodes_unique, columns=["Symbol", "Type", "logFC"])
+df_nodes_final = pd.DataFrame.reindex(df_nodes_unique, columns=["Symbol", "Type", "logFC","Gene_id"])
 
+#retrait de la colonne gene_id inutile pour l'export des nodes 
+df_nodes_export = df_nodes_final.iloc[:,0:3]
+# Suppression du préfixe "hsa-miR-"
+df_nodes_export["Symbol"] = df_nodes_export["Symbol"].str.replace("hsa-miR-", "", regex=False)
 
 # Export du fichier de nœuds pour Cytoscape
 folder_out = "Data/Cytoscape/Input/"
@@ -72,7 +74,7 @@ if not os.path.exists(folder_out):
     os.makedirs(folder_out)
      
      
-df_nodes_final.to_csv(folder_out + "nodes.csv", index=False)
+df_nodes_export.to_csv(folder_out + "nodes.csv", index=False)
 
 
 #%%% Creation des différent tableau pour l'enrichissement 
