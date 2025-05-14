@@ -108,7 +108,18 @@ for (nm in names(results)) {
   print(results[[nm]]$plot)
 }
 
-# 9) Exploration des données
-# Convertir en data.frame et afficher en tête
-head(as.data.frame(results$genes$result), 10)
-head(as.data.frame(results$mir$result),   10)
+# =============================================================================
+# 9) Sauvegarde  
+
+output_dir <- "Data/Enrichissement/Output"
+
+dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
+for (nm in names(results)) {
+  filename <- file.path(output_dir, paste0("GO_", nm, ".png"))
+  ggsave(filename = filename,
+         plot     = results[[nm]]$plot,
+         width    = 14,
+         height   = 12,
+         dpi      = 500)
+}
+
