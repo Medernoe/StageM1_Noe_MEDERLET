@@ -34,8 +34,9 @@ fit <- eBayes(fit)
 # Obtenir les résultats avec les p-values ajustées
 results <- topTable(fit, coef=2, adjust="BH", number=Inf)
 
-# Filtrer les gènes avec une p-value ajustée < 0.05
+# Filtrer les gènes avec une p-value ajustée < 0.05 rt un logFc > |- 0.5|
 deg_results <- results[results$adj.P.Val < 0.05,]
+deg_results <- deg_results[deg_results$logFC < -0.5 | deg_results$logFC > 0.5,]
 
 
 #figure --------------------------------------------------------------------------------------------
@@ -47,8 +48,8 @@ X11()
 results$Significance <- "Not significant"
 
 # Mise à jour des valeurs selon les conditions
-results$Significance[results$P.Value < 0.05 & results$logFC > 1] <- "Upregulated"
-results$Significance[results$P.Value < 0.05 & results$logFC < -1] <- "Downregulated"
+results$Significance[results$P.Value < 0.05 & results$logFC > 0.5] <- "Upregulated"
+results$Significance[results$P.Value < 0.05 & results$logFC < -0.5] <- "Downregulated"
 
 # Convertir en facteur 
 results$Significance <- factor(results$Significance, levels = c("Not significant", "Upregulated", "Downregulated"))
