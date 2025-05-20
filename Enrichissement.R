@@ -15,16 +15,8 @@
 # =============================================================================
 
 # 1) Installation des packages Bioconductor (à exécuter une seule fois)
-if (!requireNamespace("BiocManager", quietly = TRUE)) {
-  install.packages("BiocManager")
-}
-BiocManager::install(c(
-  "clusterProfiler",   # Enrichissement GO
-  "org.Hs.eg.db",      # Base SYMBOL ↔ ENTREZID
-  "multiMiR",          # Récupération des cibles de miRNA
-  "enrichplot",        # Visualisations d'enrichissement
-  "ggplot2"            # Graphiques
-))
+# présent dans la version ultérieur du code 
+
 
 # 2) Chargement des bibliothèques
 library(clusterProfiler)
@@ -102,7 +94,7 @@ results <- c(results, mir = list(res_mir))
 
 # =============================================================================
 # 8) Affichage des résultats
-message("Analyse d'enrichissement GO terminée. Affichage de tous les graphiques...")
+print("Analyse d'enrichissement GO terminée. Affichage de tous les graphiques...")
 for (nm in names(results)) {
   cat("-- Graphique :", nm, "--\n")
   print(results[[nm]]$plot)
