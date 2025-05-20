@@ -32,6 +32,8 @@ ref_names <- updated_mapping[,c(2,11)]
 #suppresion des lignes contenant des Na 
 ref_names <- ref_names[!is.na(ref_names$UPDATED_GENE_ID), ]
 
+
+#fusion de la DEG et de la table de mapping 
 df_1 <- merge(DEG_gene, ref_names, by.x = "X", by.y = "SPOT_ID", all.x = TRUE)
 
 df_2 <- df_1[!duplicated(df_1), ]
@@ -61,7 +63,7 @@ for (i in 1:nrow(df_final_gene)) {
       df_final_gene$Symbol[i] <- symbol_value  # Remplacer la valeur
     }
   } else {
-    print(paste("Erreur : aucune clé associée au gene_id", gene_id))
+    print(paste("Erreur : aucune clé associée au gene_id", gene_id)) #Aucun gene symbole n'existe pour ce gene_id 
   }
 }
 
