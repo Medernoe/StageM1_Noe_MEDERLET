@@ -34,6 +34,7 @@ results <- topTable(fit, coef=2, adjust="BH", number=Inf)
 
 # Filtrer les gènes avec une p-value ajustée < 0.05
 deg_results <- results[results$adj.P.Val < 0.05,]
+deg_results <- deg_results[deg_results$logFC < -1 | deg_results$logFC > 1,]
 
 
 
