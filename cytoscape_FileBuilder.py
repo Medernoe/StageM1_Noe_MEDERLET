@@ -40,7 +40,7 @@ df_gene   = pd.read_csv(folder_in + "DEG_GENE.csv",   usecols=["Symbol", "Type",
 #df_lncRNA = pd.read_csv(folder_in + "DEG_lncRNA.csv", usecols=["Symbol", "Type", "logFC","Gene_id"])
 
 # Cas particulier : le fichier miRNA a une structure différente
-df_miRNA = pd.read_csv(folder_in + "DEG_miRNA.csv")
+df_miRNA = pd.read_csv(folder_in + "DEG_miRNA_updated.csv")
 # Ajoute une colonne Type = "miRNA"
 df_miRNA["Type"] = "miRNA"
 # Ne garder que les colonnes utiles

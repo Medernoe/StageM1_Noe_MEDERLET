@@ -1,3 +1,6 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
 from Bio import Entrez
 import json 
 import pandas as pd

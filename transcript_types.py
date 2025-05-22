@@ -1,6 +1,9 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
 """
 Ce script interroge l'API REST d'Ensembl pour determiner le biotype du transcrit principal 
-associe à chaque gene, a� partir de son symbole (ex : TP53, NEAT1, MIR21, etc.).
+associe Ã  chaque gene, a  partir de son symbole (ex : TP53, NEAT1, MIR21, etc.).
 
 Il utilise aussi une liste externe provenant de collecTRI de facteurs de transcription humains 
 pour reclassifier les genes codants en "TF" si applicable.
@@ -14,7 +17,7 @@ Output :
      "TF" pour les facteurs de transcription
      "protein_coding" pour les genes codants
      "miRNA", "lncRNA", etc., selon la classification Ensembl
-     "Unknown" si le symbole n’est pas trouve
+     "Unknown" si le symbole nâest pas trouve
 
 """
 
@@ -25,10 +28,10 @@ import decoupler as dc #permet de recuperer les datas de collecTRI
 import os 
 
 
-#%% Fonction pour interroger l'API d'Ensembl à partir d'un symbole de gene
+#%% Fonction pour interroger l'API d'Ensembl Ã  partir d'un symbole de gene
 def requete_data(symbole = ""):
     """
-    Fait une requete à l'API REST d'Ensembl avec un symbole de gene (ex: TP53),
+    Fait une requete Ã  l'API REST d'Ensembl avec un symbole de gene (ex: TP53),
     et retourne un dictionnaire contenant les informations associees.
     """
     server = "https://rest.ensembl.org"
@@ -39,7 +42,7 @@ def requete_data(symbole = ""):
     max_attempts = 5
     dico = None 
     
-    # Essaye jusqu'à 5 fois en cas d'echec
+    # Essaye jusqu'Ã  5 fois en cas d'echec
     while attempts < max_attempts:
         if dico is None:
             attempts += 1 
@@ -55,7 +58,7 @@ def requete_data(symbole = ""):
             
     return dico 
 
-#%% Fonction pour isoler le type de gene ("biotype") à partir de l'API
+#%% Fonction pour isoler le type de gene ("biotype") Ã  partir de l'API
 def isole_data(symbole):
     """
     Isole le biotype du gene depuis les donnees recuperees par l'API.
@@ -89,7 +92,7 @@ TF_list = list(df["source"])
 #%% Creation d'une colonne "Type" en determinant le biotype pour chaque symbole
 
 print("Debut de la determination des types de transcript.")
-#initialise la list qui servira à creer la colonne type 
+#initialise la list qui servira Ã  creer la colonne type 
 biotypes = []
 i = 0
 total = len(gene["Symbol"])
