@@ -24,6 +24,12 @@ Sorties :
 - Data/Cytoscape/Input/nodes.csv  : liste des nœuds avec leur type (TF, miRNA, etc.)
 - Data/Cytoscape/Input/edge.csv   : liste des arêtes (interactions), direction, sens, score
 
+-Data/Enrichissement/Input
+    GO.csv
+    GO_TF
+    GO_GENE
+    GO_miRNA
+    
 
 """
 
@@ -77,8 +83,9 @@ if not os.path.exists(folder_out):
 df_nodes_export.to_csv(folder_out + "nodes.csv", index=False)
 
 
-#%%% Creation des différent tableau pour l'enrichissement 
+#%%% ==================ENRICHISSEMENT==================================
 
+#Creation des différent tableau pour l'enrichissement 
 
 # Répertoire de l'enrichissement fonctionnel 
 folder_GO = "Data/Enrichissement/Input/"
