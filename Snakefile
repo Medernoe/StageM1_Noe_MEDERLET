@@ -7,6 +7,7 @@ trans_in   = "Data/Transcript/Input/"
 trans_out  = "Data/Transcript/Output/"
 inter_in   = "Data/Interaction/Input/"
 inter_out  = "Data/Interaction/Output/"
+cyto_in = "Data/Cytoscape/Input"
 script_dir = workflow.basedir
 
 rule all:
@@ -64,6 +65,11 @@ rule all:
 
         # Prediction output from DEG_miRNA
         inter_in + "DEG_miRNA_updated.csv",
+
+        # Fichiers cytoscapes 
+        cyto_in + "edges.csv", 
+        cyto_in + "nodes.csv",
+
 
         
 
@@ -131,7 +137,7 @@ rule conversion_oldID_to_newID:
     shell:
         """
         mkdir -p {conv_out}
-        python3 {script_dir}/conversion_oldID_to_newID.py
+        python3 {script_dir}/conversion_oldID_to_newID.py 
         """
 
 rule conversion_spot_to_gene:
@@ -193,7 +199,7 @@ rule Interaction_miRNA:
 
 rule Interaction_TF:
     input:
-        inter_in + "DEG_miRNA.csv",
+        inter_in + "DEG_miRNA_updated.csv",
         inter_in + "DEG_TF.csv",
         inter_in + "DEG_GENE.csv",
         inter_in + "DEG_lncRNA.csv",
@@ -207,4 +213,34 @@ rule Interaction_TF:
         mkdir -p {inter_out}
         python3 {script_dir}/interaction_TF.py
         """
+
+# 6) Constructions des fichiers cytoscape 
+rule cytoscape: 
+    input: 
+        inter_in + "DEG_miRNA_updated.csv",
+        inter_in + "DEG_TF.csv",
+        inter_in + "DEG_GENE.csv",
+        conv_out + "dico_id.json",
+
+        inter_out + "interaction_miRNA_TF.json",
+        inter_out + "interaction_miRNA_GENE.json",
+        inter_out + "interaction_miRNA_lncRNA.json",
+
+        inter_out + "interaction_TF_TF.json",
+        inter_out + "interaction_TF_GENE.json",
+        inter_out + "interaction_TF_lncRNA.json",
+        inter_out + "interaction_TF_miRNA.json",
+
+    output: 
+        cyto_in + "nodes.csv"
+        cyto_in + "edges.csv"
+
+    shell: 
+        """
+        mkdir -p {cyto_in}
+        python3 {script_dir}/cytoscape_FileBuilder.py
+        """
+
+
+
 
