@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
 """
 Description :
 Ce script prédit les interactions TF → gène cible à partir des données CollecTRI (via decoupler),
@@ -51,7 +53,7 @@ TF = pd.read_csv(file_data_TF, dtype=str, na_filter=False, index_col=1)
 
 
 #ouverture du csv des tf, lncRNA, proteins_coding, etc  
-transcript_types = ["TF","GENE","lncRNA","miRNA"] #à changer ici pour rajouter les types, ecrit au format similaire que dans les fichier DEG, sauf miRNA ou interaction miR-miR impossible
+transcript_types = ["TF","GENE","lncRNA","miRNA_updated"] #à changer ici pour rajouter les types, ecrit au format similaire que dans les fichier DEG
 #l'ouverture se fait dans la boucle plus bas 
 
 #%%=========================== 3. Prédiction des interactions ==============================

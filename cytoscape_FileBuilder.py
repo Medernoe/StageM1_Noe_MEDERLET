@@ -15,8 +15,8 @@ contenant les interactions miRNA/TF générées en amont du pipeline.
 Entrées :
 - Data/Interaction/Input/DEG_TF.csv        TF exprimés
 - Data/Interaction/Input/DEG_GENE.csv      gènes codants exprimés
-- Data/Interaction/Input/DEG_lncRNA.csv    lncRNA exprimés
-- Data/Interaction/Input/DEG_miRNA.csv     miRNA exprimés
+#- Data/Interaction/Input/DEG_lncRNA.csv    lncRNA exprimés
+- Data/Interaction/Input/DEG_miRNA_updated.csv     miRNA exprimés
 - Data/Conversion/Output/dico_id.json      dictionnaire GeneID => Symbol
 - Tous les fichiers JSON présents dans : Data/Interaction/Output/
 
