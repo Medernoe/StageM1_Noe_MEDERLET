@@ -30,9 +30,11 @@ inter_out  = data + inter + output
 cyto_in = data + cyto + input 
 
 enri_in = data + enri + input
+enri_out = data + enri + output
 
 #base du répertoire du projet 
 script_dir = workflow.basedir
+
 
 rule all:
     input:
@@ -101,7 +103,19 @@ rule all:
             "GO_miRNA.csv",
         ]),
 
-        
+        #fichier enrichissement
+        expand(enri_out + "{file}", file =[
+            "GO_all.png",
+            "GO_down_all.png",
+            "GO_down_genes.png",
+            "GO_down_tfs.png",
+            "GO_genes.png",
+            "GO_mir.png",
+            "GO_tfs.png",
+            "GO_up_all.png",
+            "GO_up_genes.png",
+            "GO_up_tfs.png",
+        ])
 
 # 1) Pré-traitements
 rule pre_traitement_gene:
@@ -267,10 +281,34 @@ rule cytoscape:
         GO = enri_in + "GO.csv",
         GO_TF = enri_in + "GO_TF.csv",
         GO_GENE = enri_in + "GO_GENE.csv",
-        GO_miRNA = enri_in + "GO_miRNA.csv" ,    
+        GO_miRNA = enri_in + "GO_miRNA.csv",    
     shell: 
         """
-        mkdir -p {cyto_in}
+        mkdir -p {cyto_in} {enri_in}
         python3 {script_dir}/cytoscape_FileBuilder.py
 
+        """
+
+# 7) Enrichissement fonctionnel 
+rule enrichissement: 
+    input: 
+        GO = enri_in + "GO.csv",
+        GO_TF = enri_in + "GO_TF.csv",
+        GO_GENE = enri_in + "GO_GENE.csv",
+        GO_miRNA = enri_in + "GO_miRNA.csv",   
+    output: 
+        GO_all = enri_out + "GO_all.png", 
+        GO_down_all = enri_out + "GO_down_all.png", 
+        GO_down_genes = enri_out + "GO_down_genes.png", 
+        GO_down_tfs = enri_out + "GO_down_tfs.png", 
+        GO_genes = enri_out + "GO_genes.png", 
+        GO_mir = enri_out + "GO_mir.png", 
+        GO_tfs = enri_out + "GO_tfs.png", 
+        GO_up_all = enri_out + "GO_up_all.png", 
+        GO_up_genes = enri_out + "GO_up_genes.png", 
+        GO_up_tfs = enri_out + "GO_up_tfs.png", 
+    shell: 
+        """
+        mkdir -p {enri_out}         
+        Rscript {script_dir}/Enrichissement.R
         """
