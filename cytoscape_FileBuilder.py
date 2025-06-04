@@ -26,11 +26,9 @@ Sorties :
 
 -Data/Enrichissement/Input
     GO.csv
-    GO_TF
-    GO_GENE
-    GO_miRNA
-    
-
+    GO_TF.csv
+    GO_GENE.csv
+    GO_miRNA.csv
 """
 
 import pandas as pd
@@ -142,7 +140,7 @@ for json_file in miRNA_json_files:
             data.append({
                 "Target": gene_id,
                 "Source": mir_name,
-                #"score": infos["score"],
+                "score": infos["score"],
                 "sens" : -1,
                 "validation": infos["val"]
             })
@@ -187,7 +185,7 @@ for json_file in TF_json_files:
             data.append({
                 "Target": gene_id,
                 "Source": TF_name,
-                #"score": None,
+                "score": 0,
                 "sens" : sens,
                 "validation": 1
             })
