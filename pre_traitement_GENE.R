@@ -1,145 +1,102 @@
 #!/usr/bin/env Rscript
 
-#Ce programme vérifie la qualité des GSE utilisés (Répetition, NA, ...) exporte les données pour la DEG et la table de mapping pour la conversion_spotID_geneID
+#===============================================================================
+# pre_traitement_gene.R — qualité GEO + extraction matrices pour DEG et mapping
+#
+# Usage:
+#   Rscript pre_traitement_gene.R <pre_out_dir> <conv_in_dir>
+#
+#   - pre_out_dir   : répertoire où écrire les CSV de pré-traitement (gene_*.csv)
+#   - conv_in_dir   : répertoire où écrire merged_mapping_export.csv
+#===============================================================================
 
-#Input : GEOquery GSE19422/51081 et GPL6480
-#Output : Data/Pre-traitement/Output/    gene_PCC.csv gene_PGL.csv gene_CONTROL.csv      #DATA51081.csv
-#         Data/Conversion/Input/         merged_mapping_export.csv
+suppressPackageStartupMessages({
+  library(GEOquery)
+  library(Biobase)
+})
 
-#informations : une version possédant l'étude des jeux de données et le formatage est disponible dans : Commits on Apr 15, 2025
+# 1) Lecture des arguments
+args <- commandArgs(trailingOnly = TRUE)
+if (length(args) < 2) {
+  stop("Usage:\n  Rscript pre_traitement_gene.R <pre_out_dir> <conv_in_dir>")
+}
+pre_out   <- args[1]  # ex. "Data2/Pre-traitement/Output"
+conv_in   <- args[2]  # ex. "Data2/Conversion/Input"
 
-# Charger les packages
-library(GEOquery)
-library(Biobase)
+# Création des dossiers s’ils n’existent pas
+if (!dir.exists(pre_out)) dir.create(pre_out, recursive = TRUE)
+if (!dir.exists(conv_in)) dir.create(conv_in, recursive = TRUE)
 
-
-# load series and platform data from GEO
-#==========================================================================================================================
-# GSE19422 ----------------------------------------------------------------------------------------------------------------------------------------------------------
-gset19422 <- getGEO("GSE19422", GSEMatrix =TRUE, AnnotGPL=FALSE)
-#ajout de la plateform GPL 
-if (length(gset19422) > 1) idx <- grep("GPL6480", attr(gset19422, "names")) else idx <- 1
+#===============================================================================
+# Chargement et annotation des GSE
+#===============================================================================
+# GSE19422
+gset19422 <- getGEO("GSE19422", GSEMatrix = TRUE, AnnotGPL = FALSE)
+if (length(gset19422) > 1) {
+  idx <- grep("GPL6480", attr(gset19422, "names"))
+} else idx <- 1
 gset19422 <- gset19422[[idx]]
-
-# make proper column names to match toptable 
 fvarLabels(gset19422) <- make.names(fvarLabels(gset19422))
 
-
-# GSE51081 -----------------------------------------------------------------------------------------------------------------------------------------------------------
- 
-gset51081 <- getGEO("GSE51081", GSEMatrix =TRUE, AnnotGPL=FALSE)
-#ajout de la plateform GPL 
-if (length(gset51081) > 1) idx <- grep("GPL4133", attr(gset51081, "names")) else idx <- 1
-gset51081 <- gset51081[[idx]]
-
-# make proper column names to match toptable 
+# GSE51081
+gset51081 <- getGEO("GSE51081", GSEMatrix = TRUE, AnnotGPL = FALSE)
+if (length(gset51081) > 1) {
+  idx2 <- grep("GPL4133", attr(gset51081, "names"))
+} else idx2 <- 1
+gset51081 <- gset51081[[idx2]]
 fvarLabels(gset51081) <- make.names(fvarLabels(gset51081))
 
-#==========================================================================================================================
-# Télécharger l'annotation de la plateforme GPL6480-gset19422---------------------------------------------------------------------------------------------
+# Plateformes
 GPL6480 <- getGEO("GPL6480", destdir = ".")
-
-#créations de la table de mapping 
-mapping_GPL6480 <- Table(GPL6480)[, c("ID", "SPOT_ID","REFSEQ","GENE","GENE_SYMBOL")]
-
-# Télécharger l'annotation de la plateforme GPL4133-gset51081---------------------------------------------------------------------------------------------
 GPL4133 <- getGEO("GPL4133", destdir = ".")
 
-#créations de la table de mapping 
-mapping_GPL4133 <- Table(GPL4133)[, c("ID", "SPOT_ID" , "REFSEQ","GENE","GENE_SYMBOL")]
+# Mapping spots → gènes
+mapping_6480 <- Table(GPL6480)[, c("SPOT_ID","REFSEQ","GENE","GENE_SYMBOL")]
+mapping_4133 <- Table(GPL4133)[, c("SPOT_ID","REFSEQ","GENE","GENE_SYMBOL")]
+merged_map   <- merge(mapping_4133, mapping_6480, by = "SPOT_ID",
+                      suffixes = c("_4133","_6480"))
+merged_map[merged_map==""] <- NA
 
+#===============================================================================
+# Extraction des matrices d’intensités
+#===============================================================================
+DATA1 <- exprs(gset19422)
+DATA2 <- exprs(gset51081)
 
-# Fusionner les deux table de mapping sur la colonne SPOT_ID
-merged_mapping <- merge(mapping_GPL4133, mapping_GPL6480, by = "SPOT_ID", suffixes = c("_4133", "_6480"))
-merged_mapping[merged_mapping == ""] <- NA
-
-
-#==========================================================================================================================
-#matrice des microarray
-
-#matrice des résultats, ligne Gènes, colonne GSE, cellule intensité lumineuse 
-DATA1 = exprs(gset19422)
-DATA2 = exprs(gset51081)
-
-
-#-------------------------------------------------------------------------------------------------------------
-#transformation des noms des lignes de "ID" vers "SPOT_ID" pour gse 51081 
-
-# Créer un vecteur contenant les nouveaux noms de ligne (SPOT_ID)
-new_rownames <- mapping_GPL4133$SPOT_ID[match(rownames(exprs(gset51081)), mapping_GPL4133$ID)]
-
-# Appliquer le remplacement 
-if (sum(is.na(new_rownames)) == 0) {
-  rownames(DATA2) <- new_rownames
+# Remplacement des rownames de DATA2 (ID → SPOT_ID)
+new_rows <- mapping_4133$SPOT_ID[match(rownames(DATA2), mapping_4133$ID)]
+if (any(is.na(new_rows))) {
+  warning("Certains ID de GSE51081 n’ont pas de SPOT_ID correspondant")
 } else {
-  warning("dimension incompatible.")
+  rownames(DATA2) <- new_rows
 }
 
-
-#-------------------------------------------------------------------------------------------------------------
-#suppresion des lignes identiques dans datas 2 
 DATA2 <- unique(DATA2)
-
-#trie dans le meme ordre 
-DATA2 <- DATA2[order(rownames(DATA2)), ]
 DATA1 <- DATA1[order(rownames(DATA1)), ]
+DATA2 <- DATA2[order(rownames(DATA2)), ]
 
+#===============================================================================
+# Séparation des groupes dans DATA1
+#===============================================================================
+pgl_idx     <- c(6,7,14,16,18,19,21,25,26,31,34,36,37,41,42,50,59,62,64,75,80,82,84)
+control_idx <- c(85,86,87,88,89,90)
 
+DATA1_PCC     <- DATA1[,-c(pgl_idx, control_idx)]
+DATA1_PGL     <- DATA1[, pgl_idx]
+DATA1_CONTROL <- DATA1[, control_idx]
+DATA1_PPGL    <- DATA1[,-control_idx]
 
-#fusion des matrices 
-#==========================================================================================================================
-#suppresion des PGL du GSE19422 
+#===============================================================================
+# Écriture des CSV
+#===============================================================================
+write.csv(DATA1_PCC,     file = file.path(pre_out, "gene_PCC.csv"),     row.names = TRUE)
+write.csv(DATA1_PGL,     file = file.path(pre_out, "gene_PGL.csv"),     row.names = TRUE)
+write.csv(DATA1_CONTROL, file = file.path(pre_out, "gene_CONTROL.csv"), row.names = TRUE)
+write.csv(DATA1_PPGL,    file = file.path(pre_out, "gene_PPGL.csv"),    row.names = TRUE)
 
-# Indices ajustés pour supprimer les PGL
-pgl_indices <- c(6, 7, 14, 16, 18, 19, 21, 25, 26, 31, 34, 36, 37, 41, 42, 50, 59, 62, 64, 75, 80, 82, 84)
-control_indices <- c(85, 86, 87, 88, 89, 90)
+# Mapping export
+merged_map <- merged_map[!(is.na(merged_map$GENE_4133) & is.na(merged_map$GENE_6480)), ]
+write.csv(merged_map, file = file.path(conv_in, "merged_mapping_export.csv"),
+          row.names = TRUE)
 
-
-# Supprimer les lignes correspondantes
-DATA1_PCC <- DATA1[,-c(pgl_indices,control_indices)]
-
-DATA1_PGL <- DATA1[,pgl_indices]
-
-DATA1_CONTROL <- DATA1[,control_indices]
-
-#-------------------------------------------------------------------------------------------------------------
-#fusion des 2 matrices 
-
-
-data_combined <- cbind(DATA1_PCC, DATA2)
-
-print(dim(data_combined))
-
-
-#-------------------------------------------------------------------------------------------------------------
-#export des matrices 
-
-# Vérifier si le répertoire Output existe
-if (!dir.exists("Data/Pre-traitement/Output")) {
-  # Créer le répertoire s'il n'existe pas
-  dir.create("Data/Pre-traitement/Output", recursive = TRUE)
-}
-
-
-write.csv(DATA1_PCC, file = "Data/Pre-traitement/Output/gene_PCC.csv", row.names = T)
-write.csv(DATA1_PGL, file = "Data/Pre-traitement/Output/gene_PGL.csv", row.names = T)
-write.csv(DATA1_CONTROL, file = "Data/Pre-traitement/Output/gene_CONTROL.csv", row.names = T)
-#write.csv(DATA2, file = "Data/Pre-traitement/Output/DATA51081.csv", row.names = T)
-
-#-------------------------------------------------------------------------------------------------------------
-#export de merge_mapping 
-
-
-if (!dir.exists("Data/Conversion/Input")) {
-  # Créer le répertoire s'il n'existe pas
-  dir.create("Data/Conversion/Input", recursive = TRUE)
-}
-
-
-merged_mapping_export <- merged_mapping[!(is.na(merged_mapping$GENE_4133) & is.na(merged_mapping$GENE_6480)), ]
-
-# Écrire le fichier CSV
-write.csv(merged_mapping_export, file = "Data/Conversion/Input/merged_mapping_export.csv", row.names = TRUE)
-
-print("fin du pre-traitement pour les genes")
-
+message("Fin du pré-traitement genes.")

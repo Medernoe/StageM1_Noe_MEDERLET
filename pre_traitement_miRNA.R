@@ -1,61 +1,58 @@
 #!/usr/bin/env Rscript
 
-#Ce programme vérifie la qualité dU GSE utilisé (Répetition, NA, ...) exporte les données pour la DEG 
+#===============================================================================
+# pre_traitement_miRNA.R — qualité GEO + extraction matrices miRNA pour DEG
+#
+# Usage:
+#   Rscript pre_traitement_miRNA.R <pre_out_dir>
+#
+# Arguments :
+#   pre_out_dir    : répertoire où écrire miRNA_*.csv
+#===============================================================================
 
-#Input : GEOquery GSE29742 et GPL8227
-#Output : Data/Pre-traitement/Output/    miRNA_PCC.csv miRNA_PGL.csv miRNA_CONTROL.csv #miRNA.csv
+suppressPackageStartupMessages({
+  library(GEOquery)
+  library(Biobase)
+})
 
-#informations : une version possédant l'étude des jeux de données et le formatage est disponible dans : Commits on Apr 15, 2025
+# 1) Lecture des arguments
+args <- commandArgs(trailingOnly = TRUE)
+if (length(args) < 1) {
+  stop("Usage:\n  Rscript pre_traitement_miRNA.R <pre_out_dir>")
+}
+pre_out     <- args[1]  # ex. "Data2/Pre-traitement/Output"
 
-# Charger les packages
-library(GEOquery)
-library(Biobase)
+# Création des dossiers s’ils n’existent pas
+if (!dir.exists(pre_out))   dir.create(pre_out,   recursive = TRUE)
 
-#=========== load series and platform data from GEO ===============================
-
-#----- GSE29742 -------------------------------------------------------------------
-gset <- getGEO("GSE29742", GSEMatrix =TRUE, AnnotGPL=FALSE)
-if (length(gset) > 1) idx <- grep("GPL8227", attr(gset, "names")) else idx <- 1
+#===============================================================================
+# 2) Chargement des données GEO et plateforme
+#===============================================================================
+gset <- getGEO("GSE29742", GSEMatrix = TRUE, AnnotGPL = FALSE)
+if (length(gset) > 1) {
+  idx <- grep("GPL8227", attr(gset, "names"))
+} else idx <- 1
 gset <- gset[[idx]]
-
-# make proper column names to match toptable 
 fvarLabels(gset) <- make.names(fvarLabels(gset))
-
 miRNA <- exprs(gset)
 
-#----- GPL -------------------------------------------------------------------
+#===============================================================================
+# 3) Séparation des groupes
+#===============================================================================
+pgl_idx     <- c(2:12)
+control_idx <- c(49:54)
 
-GPL8227 <- getGEO("GPL8227", destdir = ".")
+miRNA_PCC     <- miRNA[,-c(pgl_idx, control_idx)]
+miRNA_PGL     <- miRNA[, pgl_idx]
+miRNA_CONTROL <- miRNA[, control_idx]
+miRNA_PPGL    <- miRNA[,-control_idx]
 
+#===============================================================================
+# 4) Écriture des CSV dans pre_out_dir
+#===============================================================================
+write.csv(miRNA_PCC,     file = file.path(pre_out, "miRNA_PCC.csv"),     row.names = TRUE)
+write.csv(miRNA_PGL,     file = file.path(pre_out, "miRNA_PGL.csv"),     row.names = TRUE)
+write.csv(miRNA_CONTROL, file = file.path(pre_out, "miRNA_CONTROL.csv"), row.names = TRUE)
+write.csv(miRNA_PPGL,    file = file.path(pre_out, "miRNA_PPGL.csv"),    row.names = TRUE)
 
-#========= export ======================================================
-#fusion des matrices 
-#==========================================================================================================================
-# Indices ajustés pour supprimer les PGL
-pgl_indices <- c(2:12)
-control_indices <- c(49:54)
-
-# Supprimer les lignes correspondantes au indices 
-miRNA_PCC <- miRNA[,-c(pgl_indices,control_indices)]
-
-miRNA_PGL <- miRNA[,pgl_indices]
-
-miRNA_CONTROL <- miRNA[,control_indices]
-
-
-#-------------------------------------------------------------------------------------------------------------
-#export des matrices 
-
-# Vérifier si le répertoire Output existe
-if (!dir.exists("Data/Pre-traitement/Output")) {
-  # Créer le répertoire s'il n'existe pas
-  dir.create("Data/Pre-traitement/Output", recursive = TRUE)
-}
-
-
-write.csv(miRNA_PCC, file = "Data/Pre-traitement/Output/miRNA_PCC.csv", row.names = T)
-write.csv(miRNA_PGL, file = "Data/Pre-traitement/Output/miRNA_PGL.csv", row.names = T)
-write.csv(miRNA_CONTROL, file = "Data/Pre-traitement/Output/miRNA_CONTROL.csv", row.names = T)
-#write.csv(miRNA, file = "Data/Pre-traitement/Output/miRNA.csv", row.names = T)
-
-print("fin du pre-traitement pour miRNA")
+message("Fin du pré-traitement miRNA")
