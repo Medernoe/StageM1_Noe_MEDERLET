@@ -40,32 +40,48 @@ deg_results <- deg_results[deg_results$logFC < -0.5 | deg_results$logFC > 0.5,]
 
 
 #figure --------------------------------------------------------------------------------------------
+# Ouvrir une nouvelle fenêtre graphique si nécessaire
 X11()
-#volcano plot 
-
 
 # Ajouter une colonne 'Significance' 
 results$Significance <- "Not significant"
 
 # Mise à jour des valeurs selon les conditions
-results$Significance[results$P.Value < 0.05 & results$logFC > 0.5] <- "Upregulated"
-results$Significance[results$P.Value < 0.05 & results$logFC < -0.5] <- "Downregulated"
+results$Significance[results$adj.P.Val < 0.05 & results$logFC > 0.5]  <- "Upregulated"
+results$Significance[results$adj.P.Val < 0.05 & results$logFC < -0.5] <- "Downregulated"
 
 # Convertir en facteur 
-results$Significance <- factor(results$Significance, levels = c("Not significant", "Upregulated", "Downregulated"))
+results$Significance <- factor(results$Significance,
+                               levels = c("Not significant", "Upregulated", "Downregulated"))
+
+# Calcul du seuil horizontal
+h_thresh <- -log10(0.05)
 
 # plot
-plot <- ggplot(results, aes(x = logFC, y = -log10(P.Value), color = Significance)) +
+library(ggplot2)
+plot <- ggplot(results, aes(x = logFC, y = -log10(adj.P.Val), color = Significance)) +
   geom_point(alpha = 0.5, size = 1) +
-  scale_color_manual(values = c("Upregulated" = "red", "Downregulated" = "blue", "Not significant" = "gray")) +
-  labs(title = "Volcano Plot",
-       x = "Log2 Fold Change (logFC)",
-       y = "-log10(P-value)",
+  
+  # Lignes de seuil en pointillé
+  geom_vline(xintercept = c(-0.5, 0.5),
+             linetype    = "dashed",
+             color       = "black") +
+  geom_hline(yintercept = h_thresh,
+             linetype    = "dashed",
+             color       = "black") +
+  
+  scale_color_manual(values = c("Upregulated" = "red",
+                                "Downregulated" = "blue",
+                                "Not significant" = "gray")) +
+  labs(title = "Volcano Plot miRNA",
+       x     = "Log Fold Change",
+       y     = "-log10(adj P-value)",
        color = "Expression") +
   theme_minimal() +
   theme(legend.position = "right")
 
 print(plot)
+
 
 #export ------------------------------------------------------------------------------------------
 # Trier les résultats par logFC
