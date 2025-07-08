@@ -31,7 +31,7 @@ enri_out  = DATA_DIR + ENRI  + OUTPUT_DIR
 script_dir = workflow.basedir
 
 # ——————————————————————————————————————————————————————————————
-# Liste des comparaisons à faire (wildcards)
+# Liste des comparaisons à faire 
 COMPARISONS = {
     "PCC_Sains":   ("CONTROL", "PCC"),
     "PGL_Sains":   ("CONTROL", "PGL"),
@@ -54,7 +54,19 @@ rule all:
         expand(deg_out + "{comp}/DEG_results_miRNA.csv",  comp=COMPS),
         expand(deg_out + "{comp}/volcano_plot_miRNA.png", comp=COMPS),
 
-# 1) Pré-traitement des gènes
+        # Conversion outputs
+        expand(conv_out + "{file}", file=[
+            "update_gene_mapping.csv",
+            "dico_id.json",
+            "id_updated.json",
+            "dico_controle.json",
+        ]),
+
+        # Mise à jour des résultats DEG pour chaque comparaison
+        expand(trans_in + "{comp}/DEG_updated_gene.csv",   comp=COMPS),
+# ——————————————————————————————————————————————————————————————
+# 1) Pré-traitements
+# Pré-traitement des gènes
 rule pre_traitement_gene:
     output:
         gene_PCC     = pre_out + "gene_PCC.csv",
@@ -73,7 +85,7 @@ rule pre_traitement_gene:
             {params.conv}
         """
 
-# 2) Pré-traitement des miRNA
+# Pré-traitement des miRNA
 rule pre_traitement_miRNA:
     output:
         miRNA_PCC     = pre_out + "miRNA_PCC.csv",
@@ -89,7 +101,9 @@ rule pre_traitement_miRNA:
             {params.pre} \
         """
 
-# 3) DEG — gènes
+# ——————————————————————————————————————————————————————————————
+# 2) DEG (Différentiel d'Expression Génétique)
+# DEG — gènes
 rule DEG_gene:
     params:
         comp="{comp}"
@@ -109,7 +123,7 @@ rule DEG_gene:
             {output.plot}
         """
 
-# 4) DEG — miRNA
+# DEG — miRNA
 rule DEG_miRNA:
     params:
         comp="{comp}"
@@ -129,3 +143,49 @@ rule DEG_miRNA:
             {output.plot}
         """
 
+# ——————————————————————————————————————————————————————————————
+# 3) Conversion d'IDs
+
+rule conversion_oldID_to_newID:
+    input:
+        merged_mapping_export = conv_in + "merged_mapping_export.csv",
+    output:
+        update_gene_mapping = conv_out + "update_gene_mapping.csv",
+        dico_id            = conv_out + "dico_id.json",
+        id_updated         = conv_out + "id_updated.json",
+        dico_controle      = conv_out + "dico_controle.json",
+    params:
+        conv = conv_out,
+    shell:
+        """
+        mkdir -p {params.conv}
+        python3 conversion_oldID_to_newID.py \
+           {input.merged_mapping_export} \
+           {output.update_gene_mapping} \
+           {output.dico_id} \
+           {output.id_updated} \
+           {output.dico_controle} \
+           {params.conv_out} \
+        """
+
+rule conversion_spot_to_gene:
+    params:
+        comp = "{comp}",
+        trans = trans_in,
+    input:
+        update_gene_mapping = conv_out + "update_gene_mapping.csv",
+        dico_id = conv_out + "dico_id.json",
+        results = deg_out + "{comp}/DEG_results_gene.csv",
+    output:
+        DEG_updated_gene = trans_in + "{comp}/DEG_updated_gene.csv",
+
+    shell:
+        """
+        mkdir -p {trans_in} {params.comp}
+        Rscript {script_dir}/conversion_SpotToGene.R \
+            {input.update_gene_mapping} \
+            {input.dico_id} \
+            {input.results} \
+            {output.DEG_updated_gene} \
+            {params.trans}
+        """
