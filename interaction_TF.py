@@ -44,45 +44,72 @@ import os
 df = dc.get_collectri(organism='human', split_complexes=False)
 
 #%%=========================== 2. Ouverture des fichiers ====================================
-# Fichier contenant les TF
-folder_input = "Data/Interaction/Input/"
-file_data_TF = folder_input + "DEG_TF.csv"
-
-TF = pd.read_csv(file_data_TF, dtype=str, na_filter=False, index_col=1)
-#TF.drop(TF.columns[0], axis=1, inplace=True)  # Nettoyage de la première colonne (souvent un index)
+# ouverture du fichier des TF
+input_DEG_TF = sys.argv[1]  # Chemin vers le fichier d'entrée des TF
+TF = pd.read_csv(input_DEG_TF, dtype=str, na_filter=False, index_col=1)
+#TF.drop(TF.columns[0], axis=1, inplace=True)  # Nettoyage de la première colonne (un index)
 
 
-#ouverture du csv des tf, lncRNA, proteins_coding, etc  
-transcript_types = ["TF","GENE","lncRNA","miRNA_updated"] #à changer ici pour rajouter les types, ecrit au format similaire que dans les fichier DEG
-#l'ouverture se fait dans la boucle plus bas 
+#ouverture du csv des miRNA, lncRNA, proteins_coding, etc  
+input_DEG_GENE = sys.argv[2]  # Chemin vers le fichier d'entrée des gènes
+input_DEG_lncRNA = sys.argv[3]  # Chemin vers le fichier d'entrée des lncRNAs
+input_DEG_miRNA = sys.argv[4]  # Chemin vers le fichier d'entrée des TF
+
+# Liste des fichiers d'entrée pour les gènes
+input_files = [input_DEG_TF, input_DEG_GENE, input_DEG_lncRNA, input_DEG_miRNA] 
+
+
+#ouverture des fichiers de sortie  # Chemin vers le fichier de sortie des miRNAs mis à jour
+output_interaction_TF_TF = sys.argv[5]  # Chemin vers le fichier de sortie des interactions miRNA-TF
+output_interaction_TF_GENE = sys.argv[6]  # Chemin vers le fichier de sortie des interactions miRNA-GENE
+output_interaction_TF_lncRNA = sys.argv[7]  # Chemin vers le fichier de sortie des interactions miRNA-lncRNA
+output_interaction_TF_miRNA = sys.argv[8]  # Chemin vers le fichier de sortie des interactions miRNA-lncRNA
+
+
+# Liste des fichiers de sortie correspondants
+output_files = [output_interaction_TF_TF, 
+                 output_interaction_TF_GENE, 
+                 output_interaction_TF_lncRNA, 
+                 output_interaction_TF_miRNA]
+
+
+# Création de la liste de tuples (entrée, sortie)
+input_output_pairs = list(zip(input_files, output_files))
+# input_output_pairs = [(input_DEG_TF, output_interaction_miRNA_TF), (input_DEG_GENE, output_interaction_miRNA_GENE), (input_DEG_lncRNA, output_interaction_miRNA_lncRNA)]
+
+
+# Répertoire de sortie
+folder_output = sys.argv[9] 
+
+# Vérifier si le répertoire output existe
+if not os.path.exists(folder_output):
+    os.makedirs(folder_output)
 
 #%%=========================== 3. Prédiction des interactions ==============================
-for biotype in transcript_types : 
+for pairs in input_output_pairs : 
     
-    file_data = f"DEG_{biotype}.csv"
-    print(file_data)
-    full_path = folder_input + file_data
-    data = pd.read_csv(full_path, dtype=str, na_filter=False)
+    input_file, output_file = pairs
+
+    # ouverture du fichier CSV de DEG
+    data = pd.read_csv(input_file, dtype=str, na_filter=False)
     
     list_TF = list(set(TF.iloc[:, -2]))  # Extraction unique des TF
-    total_TF = len(list_TF)
     dico_interaction = {}
     
     # Création d’un ensemble contenant tous les symboles de gènes cibles
     symbol_set = set(data["Symbol"])
     
-    for i, tf in enumerate(list_TF, start=1):
+    for tf in list_TF:
         dico_interaction[tf] = {}
         
         # Sous-ensemble des interactions connues pour ce TF
         subset = df[df["source"] == tf][["target", "weight"]]
-        total_cible = len(subset)
+        
     
-        for ii, (index, row) in enumerate(subset.iterrows(), start=1):
+        for (index, row) in subset.iterrows():
             gene = row["target"]
             sens = row["weight"]
-            print(f"TF : {tf}  - {i}/{total_TF} => cible potentielle parmis {biotype} {ii}/{total_cible}")
-    
+            
             if gene in symbol_set:
                 dico_interaction[tf][gene] = sens
     
@@ -92,15 +119,7 @@ for biotype in transcript_types :
     
     #=========================== 4. Sauvegarde en JSON ========================================
     # Sauvegarde du dictionnaire d'interactions dans un fichier JSON
-    full_name = f"interaction_TF_{biotype}.json"
-    folder_output = "Data/Interaction/Output/"
-      
-    # Vérifier si le répertoire output existe
-    if not os.path.exists(folder_output):
-        os.makedirs(folder_output)
-      
-      
-    with open(folder_output + full_name, "w") as f:
+    with open(output_file, "w") as f:
         json.dump(dico_interaction, f)
 
 

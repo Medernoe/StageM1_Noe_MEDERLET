@@ -67,6 +67,26 @@ rule all:
 
         # Types de transcript pour chaque comparaison
         expand(trans_out + "{comp}/DEG_final_gene.csv",   comp=COMPS),
+
+        # Séparation des types de transcript pour chaque comparaison
+        expand(inter_in + "{comp}/DEG_TF.csv",      comp=COMPS),
+        expand(inter_in + "{comp}/DEG_GENE.csv",    comp=COMPS),
+        expand(inter_in + "{comp}/DEG_lncRNA.csv",  comp=COMPS),    
+
+        # Mise à jour des miRNA
+        expand(inter_in + "{comp}/DEG_miRNA.csv", comp=COMPS),
+
+        # Prédiction des interactions pour chaque comparaison
+        #miRNA
+        expand(inter_out + "{comp}/interaction_miRNA_TF.json",     comp=COMPS),
+        expand(inter_out + "{comp}/interaction_miRNA_GENE.json",     comp=COMPS),
+        expand(inter_out + "{comp}/interaction_miRNA_lncRNA.json",     comp=COMPS),
+        #TF
+        expand(inter_out + "{comp}/interaction_TF_TF.json",     comp=COMPS),
+        expand(inter_out + "{comp}/interaction_TF_GENE.json",     comp=COMPS),
+        expand(inter_out + "{comp}/interaction_TF_lncRNA.json",     comp=COMPS),
+        expand(inter_out + "{comp}/interaction_TF_miRNA.json",     comp=COMPS),
+
 # ——————————————————————————————————————————————————————————————
 # 1) Pré-traitements
 # Pré-traitement des gènes
@@ -112,7 +132,7 @@ rule DEG_gene:
         comp="{comp}"
     input:
         control   = lambda wc: pre_out + f"gene_{COMPARISONS[wc.comp][0]}.csv",
-        treatment = lambda wc: pre_out + f"gene_{COMPARISONS[wc.comp][1]}.csv",
+        tumor = lambda wc: pre_out + f"gene_{COMPARISONS[wc.comp][1]}.csv",
     output:
         results = deg_out + "{comp}/DEG_results_gene.csv",
         plot    = deg_out + "{comp}/volcano_plot_gene.png",
@@ -121,7 +141,7 @@ rule DEG_gene:
         mkdir -p {deg_out}{params.comp}
         Rscript {script_dir}/DEG_gene.R \
             {input.control} \
-            {input.treatment} \
+            {input.tumor} \
             {output.results} \
             {output.plot}
         """
@@ -132,7 +152,7 @@ rule DEG_miRNA:
         comp="{comp}"
     input:
         control   = lambda wc: pre_out + f"miRNA_{COMPARISONS[wc.comp][0]}.csv",
-        treatment = lambda wc: pre_out + f"miRNA_{COMPARISONS[wc.comp][1]}.csv",
+        tumor = lambda wc: pre_out + f"miRNA_{COMPARISONS[wc.comp][1]}.csv",
     output:
         results = deg_out + "{comp}/DEG_results_miRNA.csv",
         plot    = deg_out + "{comp}/volcano_plot_miRNA.png",
@@ -141,7 +161,7 @@ rule DEG_miRNA:
         mkdir -p {deg_out}{params.comp}
         Rscript {script_dir}/DEG_miRNA.R \
             {input.control} \
-            {input.treatment} \
+            {input.tumor} \
             {output.results} \
             {output.plot}
         """
@@ -190,7 +210,7 @@ rule conversion_spot_to_gene:
             {input.dico_id} \
             {input.results} \
             {output.DEG_updated_gene} \
-            {params.trans}
+            {params.trans}{params.comp}
         """
 
 # ——————————————————————————————————————————————————————————————
@@ -210,5 +230,86 @@ rule transcript_types:
         python3 {script_dir}/transcript_types.py \
             {input.DEG_updated_gene} \
             {output.DEG_final} \
-            {params.trans}
+            {params.trans}{params.comp}
+        """
+
+rule transcript_separate:
+    params:
+        comp = "{comp}",
+        inter = inter_in,
+    input:
+        DEG_final = trans_out + "{comp}/DEG_final_gene.csv",
+    output:
+        DEG_TF = inter_in + "{comp}/DEG_TF.csv",
+        DEG_GENE = inter_in + "{comp}/DEG_GENE.csv",
+        DEG_lncRNA = inter_in + "{comp}/DEG_lncRNA.csv",
+    shell:
+        """
+        mkdir -p {params.inter}{params.comp}
+        Rscript {script_dir}/transcript_DEG_separateur.R \
+            {input.DEG_final} \
+            {output.DEG_TF} \
+            {output.DEG_GENE} \
+            {output.DEG_lncRNA} \
+            {params.inter}{params.comp}
+        """
+
+# ——————————————————————————————————————————————————————————————
+# 5) Prediction des interactions 
+rule Interaction_miRNA:
+    params:
+        comp = "{comp}",
+        inter = inter_out,
+    input:
+        DEG_TF = inter_in + "{comp}/DEG_TF.csv",
+        DEG_GENE = inter_in + "{comp}/DEG_GENE.csv",
+        DEG_lncRNA = inter_in + "{comp}/DEG_lncRNA.csv",
+        DEG_miRNA = deg_out + "{comp}/DEG_results_miRNA.csv",
+    output:
+        DEG_miRNA_updated = inter_in + "{comp}/DEG_miRNA.csv",
+        interaction_miRNA_TF = inter_out + "{comp}/interaction_miRNA_TF.json",
+        interaction_miRNA_GENE = inter_out + "{comp}/interaction_miRNA_GENE.json",
+        interaction_miRNA_lncRNA = inter_out + "{comp}/interaction_miRNA_lncRNA.json",
+    shell:
+        """
+        mkdir -p {params.inter}{params.comp}
+        python3 {script_dir}/interaction_miRNA.py \
+            {input.DEG_miRNA} \
+            {input.DEG_TF} \
+            {input.DEG_GENE} \
+            {input.DEG_lncRNA} \
+            {output.DEG_miRNA_updated} \
+            {output.interaction_miRNA_TF} \
+            {output.interaction_miRNA_GENE} \
+            {output.interaction_miRNA_lncRNA} \
+            {params.inter}{params.comp}
+        """
+
+rule Interaction_TF:
+    params:
+        comp = "{comp}",
+        inter = inter_out,
+    input:
+        DEG_TF = inter_in + "{comp}/DEG_TF.csv",
+        DEG_GENE = inter_in + "{comp}/DEG_GENE.csv",
+        DEG_lncRNA = inter_in + "{comp}/DEG_lncRNA.csv",
+        DEG_miRNA_updated = inter_in + "{comp}/DEG_miRNA.csv",
+    output:
+        interaction_TF_TF = inter_out + "{comp}/interaction_TF_TF.json",
+        interaction_TF_GENE = inter_out + "{comp}/interaction_TF_GENE.json",
+        interaction_TF_lncRNA = inter_out + "{comp}/interaction_TF_lncRNA.json",
+        interaction_TF_miRNA = inter_out + "{comp}/interaction_TF_miRNA.json",
+    shell:
+        """
+        mkdir -p {params.inter}{params.comp}
+        python3 {script_dir}/interaction_TF.py \
+            {input.DEG_TF} \
+            {input.DEG_GENE} \
+            {input.DEG_lncRNA} \
+            {input.DEG_miRNA_updated} \
+            {output.interaction_TF_TF} \
+            {output.interaction_TF_GENE} \
+            {output.interaction_TF_lncRNA} \
+            {output.interaction_TF_miRNA} \
+            {params.inter}{params.comp}
         """

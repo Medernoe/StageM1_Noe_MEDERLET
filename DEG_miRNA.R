@@ -113,8 +113,15 @@ res <- run_analysis(ctrl_df, trt_df, lbl_ctrl, lbl_trt, logFC_cutoff, adjP_cutof
 
 
 # 5) Enregistrement
-write.csv(res$deg, out_results, row.names=TRUE)
+
+#Ajout de la colonne Symbol
+deg_out <- res$deg
+deg_out$Symbol <- rownames(deg_out)
+write.csv(deg_out, out_results, row.names=FALSE)
+
+# Enregistrement du graphique
 ggsave(filename=out_plot, plot=res$plot)
+
 
 message("DEG miRNA terminé pour : ", lbl_trt, " vs ", lbl_ctrl)
 

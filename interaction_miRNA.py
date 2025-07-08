@@ -41,6 +41,7 @@ import mysql.connector
 import pandas as pd 
 import json 
 import os 
+import sys 
 
 #%% Connexion à la base de données MySQL locale
 mydb = mysql.connector.connect(
@@ -48,6 +49,7 @@ mydb = mysql.connector.connect(
   user="medernoe", #ces informations sont propres à la création d'un utilisateur mysql 
   password="1234", 
 )
+
 
 #%% Fonction : récupération du mimat à partir d'un nom de miRNA
 def miR_name_mimat(miR_name):
@@ -65,7 +67,7 @@ def miR_name_mimat(miR_name):
     mycursor.close()
     return mimat
 
-#%% Fonction : de mije à jours du mimat 
+#%% Fonction : de mije à jours du mimat avec la version 21 de MirBase
 def mirname_updated_by_mimat(mimat) :
     mycursor = mydb.cursor()
     mycursor.execute("USE mirabel") 
@@ -105,34 +107,61 @@ def pourcent_trie(dico, pourcentage = 0.05):
     top = int(n * pourcentage) or 1
     return dict(list(dico_trie.items())[:top])  
 
-#%% Chargement des fichiers CSV
-folder_input = "Data/Interaction/Input/"
 
-#ouverture du csv des miRNA 
-file_data_miRNA = folder_input + "DEG_miRNA.csv"
-miRNA = pd.read_csv(file_data_miRNA, dtype=str, na_filter=False)
+#========================================
+#%% ouverture des fichiers d'entrée et de sortie
+
+# ouverture du fichier des miRNAs
+input_DEG_miRNA = sys.argv[1]  # Chemin vers le fichier d'entrée des miRNAs
+miRNA = pd.read_csv(input_DEG_miRNA, dtype=str, na_filter=False)
 
 
 #ouverture du csv des tf, lncRNA, proteins_coding, etc  
-transcript_types = ["TF","GENE","lncRNA"] #à changer ici pour rajouter les types, ecrit au format similaire que dans les fichier DEG, sauf miRNA ou interaction miR-miR impossible
+input_DEG_TF = sys.argv[2]  # Chemin vers le fichier d'entrée des TF
+input_DEG_GENE = sys.argv[3]  # Chemin vers le fichier d'entrée des gènes
+input_DEG_lncRNA = sys.argv[4]  # Chemin vers le fichier d'entrée des lncRNAs
+# Liste des fichiers d'entrée pour les gènes
+input_files = [input_DEG_TF, input_DEG_GENE, input_DEG_lncRNA] 
 
-#%% Boucle principale : pour chaque miRNA, associer les interactions aux gènes
 
-for biotype in transcript_types : 
-    
-    file_data = f"DEG_{biotype}.csv"
-    full_path = folder_input + file_data
-    data = pd.read_csv(full_path, dtype=str, na_filter=False)
+#ouverture des fichiers de sortie  # Chemin vers le fichier de sortie des miRNAs mis à jour
+output_interaction_miRNA_TF = sys.argv[6]  # Chemin vers le fichier de sortie des interactions miRNA-TF
+output_interaction_miRNA_GENE = sys.argv[7]  # Chemin vers le fichier de sortie des interactions miRNA-GENE
+output_interaction_miRNA_lncRNA = sys.argv[8]  # Chemin vers le fichier de sortie des interactions miRNA-lncRNA
+# Liste des fichiers de sortie correspondants
+output_files = [output_interaction_miRNA_TF, output_interaction_miRNA_GENE, output_interaction_miRNA_lncRNA]
+
+
+# Création de la liste de tuples (entrée, sortie)
+input_output_pairs = list(zip(input_files, output_files))
+# input_output_pairs = [(input_DEG_TF, output_interaction_miRNA_TF), (input_DEG_GENE, output_interaction_miRNA_GENE), (input_DEG_lncRNA, output_interaction_miRNA_lncRNA)]
+
+
+# Répertoire de sortie
+folder_output = sys.argv[9] 
+
+# Vérifier si le répertoire output existe
+if not os.path.exists(folder_output):
+    os.makedirs(folder_output)
+
+
+
+#%%=========================================
+# Boucle principale : pour chaque type de gène (TF, GENE, lncRNA)
+
+for pairs in input_output_pairs : 
+    # Décomposition des tuples en variables distinctes
+    input_file, output_file = pairs
+
+    # ouverture du fichier CSV de DEG
+    data = pd.read_csv(input_file, dtype=str, na_filter=False)
 
     list_mirname = []
     list_mimat = []
-    total_miR = len(miRNA["Symbol"])
-    total = len(data["Gene_id"])
-    i = 0
     dico_interaction = {}
     
     for mirname in miRNA["Symbol"]: 
-        i += 1
+        # On récupère le mimat à partir du nom du miRNA
         mimat = miR_name_mimat(mirname)
         mirname = mirname_updated_by_mimat(mimat)
         
@@ -141,15 +170,13 @@ for biotype in transcript_types :
             continue
         
         list_mirname.append(mirname)
-        list_mimat.append(mimat)
+        #list_mimat.append(mimat)
         dico_interaction[mirname] = {}
-    
-        ii = 0
+
         for gene in data["Gene_id"]:
-            ii += 1
-            print(f"miRNA : {mirname}  - {i}/{total_miR} => {biotype} {ii}/{total}")
-    
+            
             if gene not in dico_interaction[mirname]:
+                #prédiction est une liste de tuples (score, val)
                 prediction = gene_mirna_interaction(gene, mimat)
                 
                 if prediction:
@@ -161,18 +188,14 @@ for biotype in transcript_types :
         # On garde seulement le top X% des interactions
         dico_interaction[mirname] = pourcent_trie(dico_interaction[mirname])
     
-    #%% Sauvegarde du dictionnaire d'interactions dans un fichier JSON
-    full_name = f"interaction_miRNA_{biotype}.json"
-    folder_output = "Data/Interaction/Output/"
-    
-    # Vérifier si le répertoire output existe
-    if not os.path.exists(folder_output):
-        os.makedirs(folder_output)
-    
-    
-    with open(folder_output + full_name, "w") as f:
+    with open(output_file, "w") as f:
         json.dump(dico_interaction, f)
 
-#enregistrement du fichier DEG avec les noms des miR à jours 
+#%%==========================================
+# enregistrement du fichier DEG avec les noms des miR à jours 
+
+output_DEG_miRNA_updated = sys.argv[5]
 miRNA["Symbol"] = list_mirname 
-miRNA.to_csv(folder_input + "DEG_miRNA_updated.csv", index=False)            
+miRNA.to_csv(output_DEG_miRNA_updated, index=False)            
+
+
