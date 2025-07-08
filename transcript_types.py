@@ -26,6 +26,7 @@ import requests #permet de faire les requetes API ensembl
 import pandas as pd 
 import decoupler as dc #permet de recuperer les datas de collecTRI
 import os 
+import sys
 
 
 #%% Fonction pour interroger l'API d'Ensembl Ã  partir d'un symbole de gene
@@ -74,15 +75,13 @@ def isole_data(symbole):
     return biotype
 
 
-#%%
-# Dossiers d'entree et sortie
-folder_input = "Data/Transcript/Input/"
 
 # Lecture du fichier des genes differentiellement exprimes (DEG)
-gene = pd.read_csv(folder_input + "DEG_updated_gene.csv")
+input_file = sys.argv[1]
+gene = pd.read_csv(input_file)
+
 
 #%% Utilisation de collecTRI afin de determiner les TF humain 
-
 #Telechargement des donnees collecTRI depuis decoupler (organisme humain)
 df = dc.get_collectri(organism='human', split_complexes=False)
 
@@ -113,11 +112,12 @@ for symbole in gene["Symbol"]:
 #%% Enregistre les resultats dans un nouveau fichier CSV
 gene["Type"] = biotypes
 
-folder_output = "Data/Transcript/Output/"
-
-# Verifier si le repertoire output existe
+#%%
+folder_output = sys.argv[3] 
+# Vérifier si le répertoire output existe
 if not os.path.exists(folder_output):
     os.makedirs(folder_output)
-    
 
-gene.to_csv(folder_output + "DEG_final.csv", index=False)
+#%% Export final
+output_file = sys.argv[2]
+gene.to_csv(output_file, index=False)
