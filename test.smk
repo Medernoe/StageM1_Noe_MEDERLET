@@ -64,6 +64,9 @@ rule all:
 
         # Mise à jour des résultats DEG pour chaque comparaison
         expand(trans_in + "{comp}/DEG_updated_gene.csv",   comp=COMPS),
+
+        # Types de transcript pour chaque comparaison
+        expand(trans_out + "{comp}/DEG_final_gene.csv",   comp=COMPS),
 # ——————————————————————————————————————————————————————————————
 # 1) Pré-traitements
 # Pré-traitement des gènes
@@ -181,11 +184,31 @@ rule conversion_spot_to_gene:
 
     shell:
         """
-        mkdir -p {trans_in} {params.comp}
+        mkdir -p {params.trans}{params.comp}
         Rscript {script_dir}/conversion_SpotToGene.R \
             {input.update_gene_mapping} \
             {input.dico_id} \
             {input.results} \
             {output.DEG_updated_gene} \
+            {params.trans}
+        """
+
+# ——————————————————————————————————————————————————————————————
+# 4) Types de transcript et séparation
+
+rule transcript_types:
+    params:
+        comp = "{comp}",
+        trans = trans_out,
+    input:
+        DEG_updated_gene = trans_in + "{comp}/DEG_updated_gene.csv",
+    output: 
+        DEG_final = trans_out + "{comp}/DEG_final_gene.csv",
+    shell:
+        """
+        mkdir -p {params.trans}{params.comp}
+        python3 {script_dir}/transcript_types.py \
+            {input.DEG_updated_gene} \
+            {output.DEG_final} \
             {params.trans}
         """
