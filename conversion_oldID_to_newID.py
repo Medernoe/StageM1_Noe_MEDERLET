@@ -5,7 +5,7 @@ from Bio import Entrez
 import json 
 import pandas as pd
 import os
-
+import sys 
 
 """
 Ce programme met à jour une liste d'identifiants de gènes (GeneID) en interrogeant la base NCBI.
@@ -21,6 +21,7 @@ Output : Data/Conversion/Output/
 - dico_controle.json : metadatas du nombre de version obsolète, à jours, ... Difficile à lire, correspond aux différentes voies empruntées 
 
 """
+
 
 # Fonction récursive pour extraire les accession RefSeq d'une structure JSON
 def extract_accessions(data):
@@ -127,9 +128,8 @@ def scoring_values(x, y, z):
 print("Début du programme de conversion des anciens ID au nouveaux.")
 
 #input
-folder_intput = "Data/Conversion/Input/"
-file_data = "merged_mapping_export.csv"
-df = pd.read_csv(folder_intput + file_data, dtype=str, na_filter=False)
+input_file = sys.argv[1] 
+df = pd.read_csv(input_file, dtype=str, na_filter=False)
 total = len(df["GENE_4133"])
 
 # Dictionnaires de contrôle/statistiques
@@ -217,23 +217,28 @@ for i in range(0, total):
             json.dump(dico_id, f)
     """
     
-#%% Export final
 
-#output
-folder_output = "Data/Conversion/Output/"
+folder_output = sys.argv[6] 
 # Vérifier si le répertoire output existe
 if not os.path.exists(folder_output):
     os.makedirs(folder_output)
-with open(folder_output + "dico_id.json", "w") as f:
+
+#%% Export final
+output_update_gene_mapping = sys.argv[2]
+output_dico_id = sys.argv[3]
+output_id_updated = sys.argv[4]
+output_dico_control = sys.argv[5]
+
+with open(output_dico_id, "w") as f:
     json.dump(dico_id, f)
 
-with open(folder_output + "id_updated.json", "w") as f:
+with open(output_id_updated, "w") as f:
     json.dump(id_updated, f)
 
-with open(folder_output + "dico_controle.json", "w") as f:
+with open(output_dico_control, "w") as f:
     json.dump(controle, f)
 
 df["UPDATED_GENE_ID"] = id_updated
-df.to_csv(folder_output + "update_gene_mapping.csv", index=False)
+df.to_csv(output_update_gene_mapping, index=False)
 
 print("fin du programme de conversion !!")

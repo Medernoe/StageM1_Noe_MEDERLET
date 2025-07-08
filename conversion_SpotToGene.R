@@ -9,20 +9,43 @@
 
 #informations : une version possédant l'étude des jeux de données et le formatage est disponible dans : Commits on Apr 15, 2025
 
+suppressPackageStartupMessages({
+  library(jsonlite)
+})
+# 1) Lecture des arguments
+args <- commandArgs(trailingOnly = TRUE)
+if (length(args) < 5) {
+  stop("Usage: Rscript conversion_SpotToGene.R 
+        <update_gene_mapping.csv> 
+        <dico_id.json> 
+        <DEG_results_gene.csv> 
+        <DEG_updated_gene.csv>
+        <output_directory>"
+       )
+}
 
-library(jsonlite)
+#table de conversion contenant les gene id/spot id
+in_updated_mapping   <- args[1]
+#fichier JSON
+in_data_symbole <- args[2]
+#DEG
+in_DEG_gene    <- args[3]
+#chemin de sortie du fichier DEG mis à jour
+out_DEG_updated   <- args[4]
+#repertoire de sortie
+output_directory <- args[5]
 
 
-#ouvrir le json contenant les symbol-------------------------------------------------------------------------------------------
+#ouvrir les fichier-------------------------------------------------------------------------------------------
 # Lire le fichier JSON
-data_symbole <- fromJSON("Data/Conversion/Output/dico_id.json")
+data_symbole <- fromJSON(in_data_symbole)
 
+#ouvrir la table contenant les gene id/spot id 
+updated_mapping <- read.csv(in_updated_mapping)
 
-#ouvrir la table contenant les gene id/spot id -------------------------------------------------------------------------------------------
-updated_mapping <- read.csv("Data/Conversion/Output/update_gene_mapping.csv")
+#ouvrir la DEG
+DEG_gene <- read.csv(in_DEG_gene)
 
-#ouvrir la DEG-------------------------------------------------------------------------------------------
-DEG_gene <- read.csv("Data/DEG/Output/DEG_results_gene.csv")
 
 
 #ajouter la colonne des gene_id----------------------------------------------------------------------------
@@ -69,12 +92,12 @@ for (i in 1:nrow(df_final_gene)) {
 
 # Écrire le fichier CSV------------------------------------------------------------------------------------------
 # Vérifier si le répertoire Output existe
-if (!dir.exists("Data/Transcript/Input/")) {
+if (!dir.exists(output_directory)) {
   # Créer le répertoire s'il n'existe pas
-  dir.create("Data/Transcript/Input/", recursive = TRUE)
+  dir.create(output_directory, recursive = TRUE)
 }
 
-write.csv(df_final_gene, file = "Data/Transcript/Input/DEG_updated_gene.csv", row.names = TRUE)
+write.csv(df_final_gene, file = out_DEG_updated, row.names = TRUE)
 
 print("fin de la conversion des anciens id avec les nouveaux.")
 
