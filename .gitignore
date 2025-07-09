@@ -19,4 +19,4 @@ GPL*
 .snakemake/
 
 #ignore le DAG 
-dag.pdf     
+dag.pdf     mon_env.tar.gz
