@@ -31,9 +31,9 @@ args <- commandArgs(trailingOnly = TRUE)
 if (length(args) < 5) {
   stop("Usage: Rscript transcript_DEG_separateur.R 
         <DEG_final_gene.csv> 
-        <DEG_TF.csv> 
-        <DEG_lncRNA.csv>  
         <DEG_GENE.csv>
+        <DEG_TF.csv>   
+        <DEG_lncRNA.csv>
         <output_directory>"
        )
 }
@@ -41,9 +41,10 @@ if (length(args) < 5) {
 # Chemin d'entrée du fichier contenant les gènes différentiellement exprimés
 input_DEG_final   <- args[1]
 # Chemin de sortie pour les fichiers séparés
-output_DEG_TF     <- args[2]
-output_DEG_lncRNA <- args[3]
-output_DEG_GENE   <- args[4]  
+output_DEG_GENE   <- args[2] 
+output_DEG_TF     <- args[3]
+output_DEG_lncRNA <- args[4]
+ 
 # Répertoire de sortie
 output_directory <- args[5]
 

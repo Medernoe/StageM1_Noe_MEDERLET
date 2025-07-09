@@ -27,7 +27,7 @@ if (length(args) < 4) {
   stop("Usage: Rscript DEG_gene.R <control.csv> <tumor.csv> <out_results.csv> <out_plot.png> [logFC_cutoff] [adjP_cutoff]")
 }
 control_path   <- args[1]
-treatment_path <- args[2]
+tumor_path <- args[2]
 out_results    <- args[3]
 out_plot       <- args[4]
 
@@ -90,9 +90,9 @@ get_label <- function(path) {
 }
 
 ctrl_df <- read.csv(control_path,   row.names=1)
-trt_df  <- read.csv(treatment_path, row.names=1)
+trt_df  <- read.csv(tumor_path, row.names=1)
 lbl_ctrl <- get_label(control_path)
-lbl_trt  <- get_label(treatment_path)
+lbl_trt  <- get_label(tumor_path)
 
 
 

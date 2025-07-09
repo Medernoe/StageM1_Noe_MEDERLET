@@ -17,15 +17,17 @@ suppressPackageStartupMessages({
 
 # 1) Lecture des arguments
 args <- commandArgs(trailingOnly = TRUE)
-if (length(args) < 2) {
-  stop("Usage:\n  Rscript pre_traitement_gene.R <pre_out_dir> <conv_in_dir>")
+if (length(args) < 7) {
+  stop("Usage:\n  Rscript pre_traitement_gene.R 
+  <gene_PCC> 
+  <gene_PGL>
+  <gene_CONTROL> 
+  <gene_PPGL> 
+  <merged_map> 
+  <pre_out_dir> 
+  <conv_in_dir>\n\n"
+  )
 }
-pre_out   <- args[1]  # ex. "Data2/Pre-traitement/Output"
-conv_in   <- args[2]  # ex. "Data2/Conversion/Input"
-
-# Création des dossiers s’ils n’existent pas
-if (!dir.exists(pre_out)) dir.create(pre_out, recursive = TRUE)
-if (!dir.exists(conv_in)) dir.create(conv_in, recursive = TRUE)
 
 #===============================================================================
 # Chargement et annotation des GSE
@@ -89,14 +91,32 @@ DATA1_PPGL    <- DATA1[,-control_idx]
 #===============================================================================
 # Écriture des CSV
 #===============================================================================
-write.csv(DATA1_PCC,     file = file.path(pre_out, "gene_PCC.csv"),     row.names = TRUE)
-write.csv(DATA1_PGL,     file = file.path(pre_out, "gene_PGL.csv"),     row.names = TRUE)
-write.csv(DATA1_CONTROL, file = file.path(pre_out, "gene_CONTROL.csv"), row.names = TRUE)
-write.csv(DATA1_PPGL,    file = file.path(pre_out, "gene_PPGL.csv"),    row.names = TRUE)
+
+output_pre_out   <- args[6]  # répertoire de sortie pour les CSV
+output_conv_in   <- args[7]  # répertoire de sortie pour merged_mapping_export.csv
+# Création des dossiers s’ils n’existent pas
+if (!dir.exists(output_pre_out)) dir.create(output_pre_out, recursive = TRUE)
+if (!dir.exists(output_conv_in)) dir.create(output_conv_in, recursive = TRUE)
+
+
+output_gene_PCC   <- args[1]  
+output_gene_PGL   <- args[2] 
+output_gene_CONTROL <- args[3]
+output_gene_PPGL  <- args[4] 
+
+write.csv(DATA1_PCC,     file = output_gene_PCC ,     row.names = TRUE)
+write.csv(DATA1_PGL,     file = output_gene_PGL,     row.names = TRUE)
+write.csv(DATA1_CONTROL, file = output_gene_CONTROL, row.names = TRUE)
+write.csv(DATA1_PPGL,    file = output_gene_PPGL,    row.names = TRUE)
 
 # Mapping export
+
+output_merged_map <- args[5]
+
 merged_map <- merged_map[!(is.na(merged_map$GENE_4133) & is.na(merged_map$GENE_6480)), ]
-write.csv(merged_map, file = file.path(conv_in, "merged_mapping_export.csv"),
+
+# Écriture du fichier de mapping
+write.csv(merged_map, file = output_merged_map,
           row.names = TRUE)
 
 message("Fin du pré-traitement genes.")

@@ -17,13 +17,14 @@ suppressPackageStartupMessages({
 
 # 1) Lecture des arguments
 args <- commandArgs(trailingOnly = TRUE)
-if (length(args) < 1) {
-  stop("Usage:\n  Rscript pre_traitement_miRNA.R <pre_out_dir>")
+if (length(args) < 5) {
+  stop("Usage:\n  Rscript pre_traitement_miRNA.R 
+  <miRNA_PCC> 
+  <miRNA_PGL>
+  <miRNA_CONTROL> 
+  <miRNA_PPGL>
+  <pre_out_dir>")
 }
-pre_out     <- args[1]  # ex. "Data2/Pre-traitement/Output"
-
-# Création des dossiers s’ils n’existent pas
-if (!dir.exists(pre_out))   dir.create(pre_out,   recursive = TRUE)
 
 #===============================================================================
 # 2) Chargement des données GEO et plateforme
@@ -50,9 +51,25 @@ miRNA_PPGL    <- miRNA[,-control_idx]
 #===============================================================================
 # 4) Écriture des CSV dans pre_out_dir
 #===============================================================================
-write.csv(miRNA_PCC,     file = file.path(pre_out, "miRNA_PCC.csv"),     row.names = TRUE)
-write.csv(miRNA_PGL,     file = file.path(pre_out, "miRNA_PGL.csv"),     row.names = TRUE)
-write.csv(miRNA_CONTROL, file = file.path(pre_out, "miRNA_CONTROL.csv"), row.names = TRUE)
-write.csv(miRNA_PPGL,    file = file.path(pre_out, "miRNA_PPGL.csv"),    row.names = TRUE)
+
+
+
+
+# Répertoire de sortie pour les CSV
+output_pre_out     <- args[5]  # ex. "Data/Pre-traitement/Output"
+# Création des dossiers s’ils n’existent pas
+if (!dir.exists(output_pre_out))   dir.create(output_pre_out,   recursive = TRUE)
+
+
+
+output_miRNA_PCC   <- args[1] 
+output_miRNA_PGL   <- args[2]  
+output_miRNA_CONTROL <- args[3]  
+output_miRNA_PPGL  <- args[4]  
+
+write.csv(miRNA_PCC,     file = output_miRNA_PCC,     row.names = TRUE)
+write.csv(miRNA_PGL,     file = output_miRNA_PGL,     row.names = TRUE)
+write.csv(miRNA_CONTROL, file = output_miRNA_CONTROL, row.names = TRUE)
+write.csv(miRNA_PPGL,    file = output_miRNA_PPGL,    row.names = TRUE)
 
 message("Fin du pré-traitement miRNA")

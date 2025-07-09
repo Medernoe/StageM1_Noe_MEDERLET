@@ -4,7 +4,7 @@
 # Description :
 #   Réalise un enrichissement Gene Ontology (Processus Biologique) avec clusterProfiler
 #   pour des listes de gènes, de facteurs de transcription (TF) et pour les cibles validées
-#   de microARNs (miRNA) via multiMiR.
+#   de microARNs (miRNA) via multiMiR (retiré mais peut etre remplacé par les cibles dans miRabel).
 #   Génère des sous-listes régulées à la hausse/à la baisse et affiche tous les graphiques.
 #
 # Utilisation :
@@ -14,16 +14,20 @@
 #
 # =============================================================================
 
-# 1) Installation des packages Bioconductor (à exécuter une seule fois)
-# présent dans la version ultérieur du code 
+# 1) Lecture des arguments
+args <- commandArgs(trailingOnly = TRUE)
 
+# =============================================================================
 
 # 2) Chargement des bibliothèques
-library(clusterProfiler)
-library(org.Hs.eg.db)
-library(enrichplot)
-library(ggplot2)
-library(multiMiR)
+suppressPackageStartupMessages({
+  library(clusterProfiler)
+  library(org.Hs.eg.db)
+  library(enrichplot)
+  library(ggplot2)
+})
+
+
 
 # =============================================================================
 # 3) Fonctions 
@@ -47,18 +51,21 @@ run_go_enrichment <- function(entrez_ids, label, org_db = org.Hs.eg.db,
 # =============================================================================
 # 4) Données d'entrée
 # Chaque CSV doit contenir les colonnes 'Symbol' et 'logFC'.
-input_dir   <- "Data/Enrichissement/Input"
 
-data_all    <- read.csv(file.path(input_dir, "GO.csv"),      header = TRUE)
-data_genes  <- read.csv(file.path(input_dir, "GO_GENE.csv"), header = TRUE)
-data_tfs    <- read.csv(file.path(input_dir, "GO_TF.csv"),   header = TRUE)
-data_mir    <- read.csv(file.path(input_dir, "GO_miRNA.csv"), header = TRUE)
+#ouverture des fichiers d'entrée
+input_GO      <- args[1]
+input_GO_GENE <- args[2]
+input_GO_TF   <- args[3]  
+
+data_all    <- read.csv(input_GO,      header = TRUE)
+data_genes  <- read.csv(input_GO_GENE, header = TRUE)
+data_tfs    <- read.csv(input_GO_TF,   header = TRUE)
+
 
 id_all   <- data_all$Gene_id
 id_genes <- data_genes$Gene_id
 id_tf   <- data_tfs$Gene_id
-id_mir   <- data_mir$Symbol        
-
+    
 # =============================================================================
 # 5) Enrichissement GO pour gènes et TFs
 results <- list()
@@ -72,28 +79,18 @@ results <- c(results, all = list(res_all), genes = list(res_genes), tfs = list(r
 
 # 6) Enrichissements up/down (si logFC)
 
-results$up_all   <- run_go_enrichment(data_all$Gene_id[data_all$logFC>0],   "Tous – régulés à la hausse")
 results$down_all <- run_go_enrichment(data_all$Gene_id[data_all$logFC<0],   "Tous – régulés à la baisse")
-
-results$up_genes   <- run_go_enrichment(data_genes$Gene_id[data_genes$logFC>0], "Gènes – régulés à la hausse")
 results$down_genes <- run_go_enrichment(data_genes$Gene_id[data_genes$logFC<0], "Gènes – régulés à la baisse")
-
-results$up_tfs   <- run_go_enrichment(data_tfs$Gene_id[data_tfs$logFC>0], "TFs – régulés à la hausse")
 results$down_tfs <- run_go_enrichment(data_tfs$Gene_id[data_tfs$logFC<0], "TFs – régulés à la baisse")
 
+results$up_all   <- run_go_enrichment(data_all$Gene_id[data_all$logFC>0],   "Tous – régulés à la hausse")
+results$up_genes   <- run_go_enrichment(data_genes$Gene_id[data_genes$logFC>0], "Gènes – régulés à la hausse")
+results$up_tfs   <- run_go_enrichment(data_tfs$Gene_id[data_tfs$logFC>0], "TFs – régulés à la hausse")
+
+
 
 # =============================================================================
-# 7) Récupération et enrichissement des cibles miRNA
-# Récupérer les interactions validées
-mm <- get_multimir(mirna = id_mir, table = "validated", summary = FALSE)
-target_ids <- unique(mm@data$target_entrez)
-
-# Enrichissement GO des cibles
-res_mir <- run_go_enrichment(target_ids, "Cibles de miRNA")
-results <- c(results, mir = list(res_mir))
-
-# =============================================================================
-# 8) Affichage des résultats
+# 7) Affichage des résultats
 print("Analyse d'enrichissement GO terminée. Affichage de tous les graphiques...")
 for (nm in names(results)) {
   cat("-- Graphique :", nm, "--\n")
@@ -101,17 +98,40 @@ for (nm in names(results)) {
 }
 
 # =============================================================================
-# 9) Sauvegarde  
-
-output_dir <- "Data/Enrichissement/Output"
-
-dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
-for (nm in names(results)) {
-  filename <- file.path(output_dir, paste0("GO_", nm, ".png"))
-  ggsave(filename = filename,
-         plot     = results[[nm]]$plot,
-         width    = 14,
-         height   = 12,
-         dpi      = 500)
+# 8) Sauvegarde  
+output_enri <- args[13]
+# Vérifier si le répertoire Output existe
+if (!dir.exists(output_enri)) {
+  # Créer le répertoire s'il n'existe pas
+  dir.create(output_enri, recursive = TRUE)
 }
+
+#chemin d'accès des fichiers de sortie
+output_GO_all   <- args[4]
+output_GO_genes <- args[5]
+output_GO_tfs <- args[6]
+
+output_GO_down_all <- args[7]
+output_GO_down_genes <- args[8]
+output_GO_down_tfs <- args[9]
+
+output_GO_up_all <- args[10]
+output_GO_up_genes <- args[11]
+output_GO_up_tfs <- args[12]
+
+# Sauvegarde explicite de chaque plot avec le nom de fichier correspondant
+ggsave(filename = output_GO_all,   plot = results$all$plot,   width = 14, height = 12, dpi = 500)
+ggsave(filename = output_GO_genes, plot = results$genes$plot, width = 14, height = 12, dpi = 500)
+ggsave(filename = output_GO_tfs,   plot = results$tfs$plot,   width = 14, height = 12, dpi = 500)
+
+ggsave(filename = output_GO_down_all,   plot = results$down_all$plot,   width = 14, height = 12, dpi = 500)
+ggsave(filename = output_GO_down_genes, plot = results$down_genes$plot, width = 14, height = 12, dpi = 500)
+ggsave(filename = output_GO_down_tfs,   plot = results$down_tfs$plot,   width = 14, height = 12, dpi = 500)
+
+ggsave(filename = output_GO_up_all,   plot = results$up_all$plot,   width = 14, height = 12, dpi = 500)
+ggsave(filename = output_GO_up_genes, plot = results$up_genes$plot, width = 14, height = 12, dpi = 500)
+ggsave(filename = output_GO_up_tfs,   plot = results$up_tfs$plot,   width = 14, height = 12, dpi = 500)
+
+
+message("Fichiers d'enrichissement GO sauvegardés avec succès dans :", output_enri)
 

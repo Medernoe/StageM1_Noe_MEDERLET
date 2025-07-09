@@ -16,11 +16,11 @@
 #
 # Usage:
 #   Rscript DEG_gene.R 
-#     <control.csv> <treatment.csv> <out_results.csv> <out_plot.png>
+#     <control.csv> <tumor.csv> <out_results.csv> <out_plot.png>
 #     [logFC_cutoff] [adjP_cutoff]
 #
 #   - control.csv     : Data/Pre-traitement/Output/miRNA_CONTROL.csv
-#   - treatment.csv   : Data/Pre-traitement/Output/miRNA_PCC.csv
+#   - tumor.csv   : Data/Pre-traitement/Output/miRNA_PCC.csv
 #   - out_results.csv : Data/DEG/Output/PCC_Sains/DEG_results_PCC_Sains.csv
 #   - out_plot.png    : Data/DEG/Output/PCC_Sains/volcano_plot_PCC_Sains.png
 #   - logFC_cutoff    : (optionnel, défaut = 1)
@@ -38,12 +38,12 @@ if (length(args) < 4) {
   stop("Usage: Rscript DEG_miRNA.R <control.csv> <tumor.csv> <out_results.csv> <out_plot.png> [logFC_cutoff] [adjP_cutoff]")
 }
 control_path   <- args[1]
-treatment_path <- args[2]
+tumor_path <- args[2]
 out_results    <- args[3]
 out_plot       <- args[4]
 
 # seuils optionnels
-logFC_cutoff <- if (length(args) >= 5) as.numeric(args[5]) else 0.1
+logFC_cutoff <- if (length(args) >= 5) as.numeric(args[5]) else 1
 adjP_cutoff  <- if (length(args) >= 6) as.numeric(args[6]) else 0.05
 
 
@@ -101,9 +101,9 @@ get_label <- function(path) {
 }
 
 ctrl_df <- read.csv(control_path,   row.names=1)
-trt_df  <- read.csv(treatment_path, row.names=1)
+trt_df  <- read.csv(tumor_path, row.names=1)
 lbl_ctrl <- get_label(control_path)
-lbl_trt  <- get_label(treatment_path)
+lbl_trt  <- get_label(tumor_path)
 
 
 

@@ -94,6 +94,20 @@ rule all:
         expand(enri_in + "{comp}/GO_TF.csv", comp=COMPS),
         expand(enri_in + "{comp}/GO_GENE.csv", comp=COMPS),
         expand(enri_in + "{comp}/GO_miRNA.csv", comp=COMPS),   
+
+        # Enrichissement fonctionnel pour chaque comparaison
+        # up/down
+        expand(enri_out + "{comp}/GO_all.png", comp=COMPS),
+        expand(enri_out + "{comp}/GO_genes.png", comp=COMPS),
+        expand(enri_out + "{comp}/GO_tfs.png", comp=COMPS),
+        # down
+        expand(enri_out + "{comp}/GO_down_all.png", comp=COMPS),
+        expand(enri_out + "{comp}/GO_down_genes.png", comp=COMPS),
+        expand(enri_out + "{comp}/GO_down_tfs.png", comp=COMPS),
+        # up
+        expand(enri_out + "{comp}/GO_up_all.png", comp=COMPS),
+        expand(enri_out + "{comp}/GO_up_genes.png", comp=COMPS),
+        expand(enri_out + "{comp}/GO_up_tfs.png", comp=COMPS) 
 # ——————————————————————————————————————————————————————————————
 # 1) Pré-traitements
 # Pré-traitement des gènes
@@ -111,6 +125,11 @@ rule pre_traitement_gene:
         """
         mkdir -p {params.pre} {params.conv}
         Rscript {script_dir}/pre_traitement_GENE.R \
+            {output.gene_PCC} \
+            {output.gene_PGL} \
+            {output.gene_CONTROL} \
+            {output.gene_PPGL} \
+            {output.merged_map} \
             {params.pre} \
             {params.conv}
         """
@@ -128,6 +147,10 @@ rule pre_traitement_miRNA:
         """
         mkdir -p {params.pre}
         Rscript {script_dir}/pre_traitement_miRNA.R \
+            {output.miRNA_PCC} \
+            {output.miRNA_PGL} \
+            {output.miRNA_CONTROL} \
+            {output.miRNA_PPGL} \
             {params.pre} \
         """
 
@@ -195,7 +218,7 @@ rule conversion_oldID_to_newID:
            {output.dico_id} \
            {output.id_updated} \
            {output.dico_controle} \
-           {params.conv_out} \
+           {params.conv} \
         """
 
 rule conversion_spot_to_gene:
@@ -247,16 +270,16 @@ rule transcript_separate:
     input:
         DEG_final = trans_out + "{comp}/DEG_final_gene.csv",
     output:
-        DEG_TF = inter_in + "{comp}/DEG_TF.csv",
         DEG_GENE = inter_in + "{comp}/DEG_GENE.csv",
+        DEG_TF = inter_in + "{comp}/DEG_TF.csv",
         DEG_lncRNA = inter_in + "{comp}/DEG_lncRNA.csv",
     shell:
         """
         mkdir -p {params.inter}{params.comp}
         Rscript {script_dir}/transcript_DEG_separateur.R \
             {input.DEG_final} \
-            {output.DEG_TF} \
             {output.DEG_GENE} \
+            {output.DEG_TF} \
             {output.DEG_lncRNA} \
             {params.inter}{params.comp}
         """
@@ -321,6 +344,7 @@ rule Interaction_TF:
             {params.inter}{params.comp}
         """
 
+# ——————————————————————————————————————————————————————————————
 # 6) Constructions des fichiers cytoscape 
 rule cytoscape: 
     params:
@@ -373,4 +397,47 @@ rule cytoscape:
             {output.GO_miRNA} \
             {params.cyto_in}{params.comp} \
             {params.enri_in}{params.comp}
+        """
+
+
+# ——————————————————————————————————————————————————————————————
+# 7) Enrichissement fonctionnel 
+rule enrichissement: 
+    params:
+        comp = "{comp}",
+        enri = enri_out,
+        
+    input: 
+        GO = enri_in + "{comp}/GO.csv",
+        GO_GENE = enri_in + "{comp}/GO_GENE.csv",
+        GO_TF = enri_in + "{comp}/GO_TF.csv",   
+    output: 
+        GO_all = enri_out + "{comp}/GO_all.png", 
+        GO_genes = enri_out + "{comp}/GO_genes.png", 
+        GO_tfs = enri_out + "{comp}/GO_tfs.png", 
+
+        GO_down_all = enri_out + "{comp}/GO_down_all.png", 
+        GO_down_genes = enri_out + "{comp}/GO_down_genes.png", 
+        GO_down_tfs = enri_out + "{comp}/GO_down_tfs.png", 
+
+        GO_up_all = enri_out + "{comp}/GO_up_all.png", 
+        GO_up_genes = enri_out + "{comp}/GO_up_genes.png", 
+        GO_up_tfs = enri_out + "{comp}/GO_up_tfs.png", 
+    shell: 
+        """
+        mkdir -p {params.enri}{params.comp}         
+        Rscript {script_dir}/Enrichissement.R \
+            {input.GO} \
+            {input.GO_GENE} \
+            {input.GO_TF} \
+            {output.GO_all} \
+            {output.GO_genes} \
+            {output.GO_tfs} \
+            {output.GO_down_all} \
+            {output.GO_down_genes} \
+            {output.GO_down_tfs} \
+            {output.GO_up_all} \
+            {output.GO_up_genes} \
+            {output.GO_up_tfs} \
+            {params.enri}{params.comp}
         """
