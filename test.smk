@@ -31,7 +31,7 @@ enri_out  = DATA_DIR + ENRI  + OUTPUT_DIR
 script_dir = workflow.basedir
 
 # ——————————————————————————————————————————————————————————————
-# Liste des comparaisons à faire 
+# Liste des comparaisons à faire basés sur les séparations dans pre-traitement
 COMPARISONS = {
     "PCC_Sains":   ("CONTROL", "PCC"),
     "PGL_Sains":   ("CONTROL", "PGL"),
@@ -87,6 +87,13 @@ rule all:
         expand(inter_out + "{comp}/interaction_TF_lncRNA.json",     comp=COMPS),
         expand(inter_out + "{comp}/interaction_TF_miRNA.json",     comp=COMPS),
 
+        # Fichiers Cytoscape pour chaque comparaison
+        expand(cyto_in + "{comp}/nodes.csv", comp=COMPS),
+        expand(cyto_in + "{comp}/edges.csv", comp=COMPS),
+        expand(enri_in + "{comp}/GO.csv", comp=COMPS),
+        expand(enri_in + "{comp}/GO_TF.csv", comp=COMPS),
+        expand(enri_in + "{comp}/GO_GENE.csv", comp=COMPS),
+        expand(enri_in + "{comp}/GO_miRNA.csv", comp=COMPS),   
 # ——————————————————————————————————————————————————————————————
 # 1) Pré-traitements
 # Pré-traitement des gènes
@@ -312,4 +319,58 @@ rule Interaction_TF:
             {output.interaction_TF_lncRNA} \
             {output.interaction_TF_miRNA} \
             {params.inter}{params.comp}
+        """
+
+# 6) Constructions des fichiers cytoscape 
+rule cytoscape: 
+    params:
+        comp = "{comp}",
+        cyto_in = cyto_in,
+        enri_in = enri_in,
+    input: 
+        DEG_miRNA_updated = inter_in + "{comp}/DEG_miRNA.csv",
+        DEG_TF = inter_in + "{comp}/DEG_TF.csv",
+        DEG_GENE = inter_in + "{comp}/DEG_GENE.csv",
+        dico_id = conv_out + "dico_id.json",
+
+        interaction_miRNA_TF = inter_out + "{comp}/interaction_miRNA_TF.json",
+        interaction_miRNA_GENE = inter_out + "{comp}/interaction_miRNA_GENE.json",
+        interaction_miRNA_lncRNA = inter_out + "{comp}/interaction_miRNA_lncRNA.json",
+
+        interaction_TF_TF = inter_out + "{comp}/interaction_TF_TF.json",
+        interaction_TF_GENE = inter_out + "{comp}/interaction_TF_GENE.json",
+        interaction_TF_lncRNA = inter_out + "{comp}/interaction_TF_lncRNA.json",
+        interaction_TF_miRNA = inter_out + "{comp}/interaction_TF_miRNA.json",
+
+    output: 
+        nodes = cyto_in + "{comp}/nodes.csv",
+        edges = cyto_in + "{comp}/edges.csv",
+
+        GO = enri_in + "{comp}/GO.csv",
+        GO_TF = enri_in + "{comp}/GO_TF.csv",
+        GO_GENE = enri_in + "{comp}/GO_GENE.csv",
+        GO_miRNA = enri_in + "{comp}/GO_miRNA.csv",    
+    shell: 
+        """
+        mkdir -p {params.cyto_in}{params.comp} {params.enri_in}{params.comp}
+        python3 {script_dir}/cytoscape_FileBuilder.py \
+            {input.DEG_miRNA_updated} \
+            {input.DEG_TF} \
+            {input.DEG_GENE} \
+            {input.dico_id} \
+            {input.interaction_miRNA_TF} \
+            {input.interaction_miRNA_GENE} \
+            {input.interaction_miRNA_lncRNA} \
+            {input.interaction_TF_TF} \
+            {input.interaction_TF_GENE} \
+            {input.interaction_TF_lncRNA} \
+            {input.interaction_TF_miRNA} \
+            {output.nodes} \
+            {output.edges} \
+            {output.GO} \
+            {output.GO_TF} \
+            {output.GO_GENE} \
+            {output.GO_miRNA} \
+            {params.cyto_in}{params.comp} \
+            {params.enri_in}{params.comp}
         """
