@@ -1,5 +1,8 @@
 # Ignorer les répertoires 
 Data/
+Data2/
+Data3/
+old_script/
 MetaData/
 work/ 
 
@@ -14,3 +17,6 @@ GPL*
 
 # Snakemake
 .snakemake/
+
+#ignore le DAG 
+dag.pdf     
