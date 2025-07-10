@@ -1,0 +1,37 @@
+name: stage_M1
+channels:
+  - bioconda
+  - conda-forge
+  - defaults
+dependencies:
+  - biopython
+  - mysql-connector-python
+  - python=3.10
+  - r-base
+  - r-essentials
+  - bioconductor-geoquery
+  - r-factominer
+  - r-factoextra
+  - pandas
+  - openjdk=11
+  - r-pheatmap
+  - snakemake
+  - graphviz
+  - pygraphviz
+  - goatools
+  - bioconductor-org.hs.eg.db
+  - r-ggplot2
+  - curl
+  - freetype
+  - fribidi
+  - harfbuzz
+  - libiconv
+  - libpng
+  - libxml2
+  - xz
+  - zlib
+  - r-optparse
+  - conda-pack
+  - bioconductor-annotationdbi
+  - r-abind=1.4_5
+prefix: /home/medernoe/miniforge3/envs/stage_M1

@@ -1,0 +1,22 @@
+# Ignorer les répertoires 
+Data/
+Data2/
+Data3/
+old_script/
+MetaData/
+work/ 
+
+# logs et caches Nextflow
+.nextflow.log*
+.nextflow/
+nextflow.config 
+main.nf 
+
+# Ignorer les GPL
+GPL*
+
+# Snakemake
+.snakemake/
+
+#ignore le DAG 
+dag.pdf     mon_env.tar.gz
