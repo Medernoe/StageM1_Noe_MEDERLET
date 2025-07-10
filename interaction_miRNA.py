@@ -43,11 +43,14 @@ import json
 import os 
 import sys 
 
+USER = sys.argv[10]  # Identifiant de l'utilisateur MySQL
+PASSWORD = sys.argv[11]  # Mot de passe de l'utilisateur MySQL
+
 #%% Connexion à la base de données MySQL locale
 mydb = mysql.connector.connect(
-  host="localhost",
-  user="medernoe", #ces informations sont propres à la création d'un utilisateur mysql 
-  password="1234", 
+  host = "localhost",
+  user = USER, #ces informations sont propres à la création d'un utilisateur mysql 
+  password= PASSWORD, 
 )
 
 

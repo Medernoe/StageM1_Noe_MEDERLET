@@ -1,9 +1,15 @@
 # -*- Snakefile -*-
 
 # Pour pouvoir passer data_dir / input_dir / output_dir via --config
-DATA_DIR   = config.get("data_dir",   "Data2/")
+DATA_DIR   = config.get("data_dir",   "Data3/")
 INPUT_DIR  = config.get("input_dir",  "Input/")
 OUTPUT_DIR = config.get("output_dir", "Output/")
+
+
+# Identifiant connexion à mySQL
+USER = "medernoe"
+PASSWORD = "1234"
+
 
 # Sous-dossiers de traitement
 PRE  = "Pre-traitement/"
@@ -290,6 +296,8 @@ rule Interaction_miRNA:
     params:
         comp = "{comp}",
         inter = inter_out,
+        user = USER,
+        password = PASSWORD,
     input:
         DEG_TF = inter_in + "{comp}/DEG_TF.csv",
         DEG_GENE = inter_in + "{comp}/DEG_GENE.csv",
@@ -312,7 +320,9 @@ rule Interaction_miRNA:
             {output.interaction_miRNA_TF} \
             {output.interaction_miRNA_GENE} \
             {output.interaction_miRNA_lncRNA} \
-            {params.inter}{params.comp}
+            {params.inter}{params.comp} \
+            {params.user} \
+            {params.password}
         """
 
 rule Interaction_TF:

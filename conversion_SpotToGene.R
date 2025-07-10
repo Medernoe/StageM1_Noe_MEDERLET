@@ -50,7 +50,8 @@ DEG_gene <- read.csv(in_DEG_gene)
 
 #ajouter la colonne des gene_id----------------------------------------------------------------------------
 # Créer un vecteur contenant les nouveaux noms de ligne (SPOT_ID)
-ref_names <- updated_mapping[,c(2,11)]
+ref_names <- updated_mapping[, c("SPOT_ID", "UPDATED_GENE_ID")]
+
 
 #suppresion des lignes contenant des Na 
 ref_names <- ref_names[!is.na(ref_names$UPDATED_GENE_ID), ]
